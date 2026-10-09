@@ -1,0 +1,22 @@
+[Reading 18 lines from start (total: 18 lines, 0 remaining)]
+
+services:
+  - type: web
+    name: eg365-cloud
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /healthz
+    envVars:
+      - key: TZ
+        value: Europe/Istanbul
+      - key: GENERIC_TIMEZONE
+        value: Europe/Istanbul
+      - key: N8N_SECURE_COOKIE
+        value: "false"
+      - key: N8N_DIAGNOSTICS_ENABLED
+        value: "false"
+      - key: N8N_VERSION_NOTIFICATIONS_ENABLED
+        value: "false"
+
+[executed on device: MMG (e2d9b62d-90f0-404b-99cb-d8f6e744dc7b)]
