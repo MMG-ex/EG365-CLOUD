@@ -1,0 +1,8 @@
+[Reading 4 lines from start (total: 4 lines, 0 remaining)]
+
+fastapi==0.128.2
+uvicorn[standard]==0.48.0
+pillow==12.3.0
+python-multipart==0.0.20
+
+[executed on device: MMG (e2d9b62d-90f0-404b-99cb-d8f6e744dc7b)]
