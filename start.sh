@@ -1,5 +1,3 @@
-[Reading 49 lines from start (total: 49 lines, 0 remaining)]
-
 #!/bin/sh
 set -eu
 
@@ -49,5 +47,3 @@ n8n import:workflow --input=/opt/workflow/EG365_CLOUD_RENDER_V128.json >/tmp/n8n
 n8n update:workflow --id=EG365CLOUDRENDERV128 --active=true >/tmp/n8n-activate.log 2>&1 || true
 
 exec n8n start
-
-[executed on device: MMG (e2d9b62d-90f0-404b-99cb-d8f6e744dc7b)]
