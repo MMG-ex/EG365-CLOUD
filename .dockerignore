@@ -1,10 +1,1 @@
-[Reading 6 lines from start (total: 6 lines, 0 remaining)]
-
-.git
-.gitignore
-*.log
-__pycache__/
-*.pyc
-sanitize_workflow.py
-
-[executed on device: MMG (e2d9b62d-90f0-404b-99cb-d8f6e744dc7b)]
+read_file is still running on MMG after 3s. Do not retry the original tool call. Use get_tool_result with call_id="efa9da21-9910-4938-9bd4-a544d0847395" to check it later.
