@@ -1,1 +1,2270 @@
-read_file is still running on MMG after 3s. Do not retry the original tool call. Use get_tool_result with call_id="0986b49e-133b-4708-be1e-f15d3ae255f6" to check it later.
+{
+  "name": "EG365 CLOUD - V128 META CATBOX VERIFIED - RENDER FREE",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const __runMode=String($json?.run_mode||'normal');\nreturn [{json: {\n  run_mode: __runMode,\n  backfill_hours: 120,\n  backfill_max_per_run: 1,\n  build_tag: 'V128_META_CATBOX_VERIFIED',\n  dry_run: false,\n  live_test_mode: true,\n  live_test_max_posts: 1,\n  crosspost_all_verified: true, // Seçilen doğrulanmış haber 4 platforma birlikte gider.\n  force_best_verified: false, // AI publish bayrağı vermese bile güvenli/doğrulanmış en iyi haberi seçer.\n  fail_open_source_reporting: false, // Tüm AI/OmniRoute sağlayıcıları düşerse kaynakta yazanı, açık SOURCE_REPORTED etiketiyle yayınlar.\n  fallback_min_confidence: 70,\n\n  openai_api_key: '__OPENAI_API_KEY__',\n  openai_model: 'gpt-5.4-mini',\n  openai_model_pool: ['gpt-5.4-mini','gpt-5.6-luna','gpt-5.6-sol','gpt-5.6-terra','gpt-6-astra'],\n  openai_router_enabled: true,\n\n  // OmniRoute: n8n Docker ise host.docker.internal; n8n native ise localhost otomatik yedek.\n  omniroute_enabled: true,\n  omniroute_base_url_docker: 'https://disabled.invalid',\n  omniroute_base_url_local: 'https://disabled.invalid',\n  // OmniRoute REQUIRE_API_KEY=false ise any-string yeterlidir. Endpoint key kullanıyorsan burayı değiştir.\n  omniroute_api_key: 'any-string',\n  // auto/offline: yüksek kullanılabilirlik / kotası en rahat bağlı sağlayıcı.\n  omniroute_model: 'ddgw/mistral-small-2603',\n  omniroute_backup_model: 'ddgw/mistral-small-2603',\n  omniroute_timeout_ms: 120000,\n  openai_search_context: 'low',\n  ai_max_output_tokens: 3000,\n  ai_summary_chars: 500,\n\n  telegram_bot_token: '__TELEGRAM_BOT_TOKEN__',\n  telegram_chat_id: '__TELEGRAM_CHAT_ID__',\n  telegram_public_url: '__TELEGRAM_PUBLIC_URL__',\n\n  instagram_user_id: '__INSTAGRAM_USER_ID__',\n  instagram_access_token: '__INSTAGRAM_ACCESS_TOKEN__',\n  instagram_api_version: 'v23.0',\n\n  threads_user_id: 'me',\n  threads_access_token: '__THREADS_ACCESS_TOKEN__',\n  threads_api_version: 'v1.0',\n\n  facebook_user_access_token: '',\n  facebook_page_id: '__FACEBOOK_PAGE_ID__',\n  facebook_page_access_token: '__FACEBOOK_PAGE_ACCESS_TOKEN__',\n  facebook_api_version: 'v26.0',\n  public_image_host: 'catbox',\n  public_image_ttl: '72h',\n\n  lookback_hours: 36,\n  first_run_hours: 48,\n  min_confidence_telegram: 68,\n  min_confidence_instagram: 78,\n  min_importance_instagram: 55,\n  seen_keep_days: 21,\n  max_items_per_run: 1,\n  use_static_template: true,\n  max_instagram_per_run: 1,\n  max_telegram_per_run: 1,\n  max_threads_per_run: 1,\n  max_facebook_per_run: 1,\n  direct_meb_hosts: [\"www.meb.gov.tr\", \"personel.meb.gov.tr\", \"tegm.meb.gov.tr\", \"ogm.meb.gov.tr\", \"odsgm.meb.gov.tr\", \"orgm.meb.gov.tr\", \"yegitek.meb.gov.tr\", \"mtegm.meb.gov.tr\", \"ookgm.meb.gov.tr\", \"hbogm.meb.gov.tr\", \"oygm.meb.gov.tr\", \"dogm.meb.gov.tr\", \"yyegm.meb.gov.tr\", \"abdigm.meb.gov.tr\", \"ttkb.meb.gov.tr\", \"akademi.meb.gov.tr\", \"dhgm.meb.gov.tr\", \"sgb.meb.gov.tr\", \"hhgm.meb.gov.tr\", \"iegm.meb.gov.tr\"],\n  direct_meb_source_names: {\"www.meb.gov.tr\": \"Millî Eğitim Bakanlığı\", \"personel.meb.gov.tr\": \"MEB Personel Genel Müdürlüğü\", \"tegm.meb.gov.tr\": \"Temel Eğitim Genel Müdürlüğü\", \"ogm.meb.gov.tr\": \"Ortaöğretim Genel Müdürlüğü\", \"odsgm.meb.gov.tr\": \"Ölçme, Değerlendirme ve Sınav Hizmetleri Genel Müdürlüğü\", \"orgm.meb.gov.tr\": \"Özel Eğitim ve Rehberlik Hizmetleri Genel Müdürlüğü\", \"yegitek.meb.gov.tr\": \"Yenilik ve Eğitim Teknolojileri Genel Müdürlüğü\", \"mtegm.meb.gov.tr\": \"Meslekî ve Teknik Eğitim Genel Müdürlüğü\", \"ookgm.meb.gov.tr\": \"Özel Öğretim Kurumları Genel Müdürlüğü\", \"hbogm.meb.gov.tr\": \"Hayat Boyu Öğrenme Genel Müdürlüğü\", \"oygm.meb.gov.tr\": \"Öğretmen Yetiştirme ve Geliştirme Genel Müdürlüğü\", \"dogm.meb.gov.tr\": \"Din Öğretimi Genel Müdürlüğü\", \"yyegm.meb.gov.tr\": \"Yükseköğretim ve Yurt Dışı Eğitim Genel Müdürlüğü\", \"abdigm.meb.gov.tr\": \"Avrupa Birliği ve Dış İlişkiler Genel Müdürlüğü\", \"ttkb.meb.gov.tr\": \"Talim ve Terbiye Kurulu Başkanlığı\", \"akademi.meb.gov.tr\": \"Millî Eğitim Akademisi\", \"dhgm.meb.gov.tr\": \"Destek Hizmetleri Genel Müdürlüğü\", \"sgb.meb.gov.tr\": \"Strateji Geliştirme Başkanlığı\", \"hhgm.meb.gov.tr\": \"Hukuk Hizmetleri Genel Müdürlüğü\", \"iegm.meb.gov.tr\": \"İnşaat ve Emlak Genel Müdürlüğü\"},\n  direct_recent_hours: 168,\n}}];"
+      },
+      "id": "bb169316-7c13-4dae-9559-bf8baf3dfb0e",
+      "name": "CONFIG",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4784,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg=$('CONFIG').first().json;\nconst names=cfg.direct_meb_source_names||{};\nconst out=[];\nfor(const host of (cfg.direct_meb_hosts||[])){\n  const base='https://'+host+'/';\n  const sourceName=names[host]||'Millî Eğitim Bakanlığı';\n  out.push({json:{\n    fetch_url:'http://127.0.0.1:8787/discover?url='+encodeURIComponent(base)+'&source_name='+encodeURIComponent(sourceName),\n    source_host:host,source_name:sourceName,source_type:'DISCOVER',official_base:base\n  }});\n}\nreturn out;"
+      },
+      "id": "a0d82c87-144e-47a9-ba52-2c1f7ab084b5",
+      "name": "KAYNAKLARI ÜRET",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4560,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.fetch_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/153 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml,text/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "tr-TR,tr;q=0.9"
+            },
+            {
+              "name": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "raw"
+            }
+          },
+          "timeout": 45000
+        }
+      },
+      "id": "34dc41da-9c6f-4ac9-9914-1f7e11e94a5d",
+      "name": "RSS OKU",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4336,
+        1072
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg=$('CONFIG').first().json;\nconst meta=$('KAYNAKLARI ÜRET').all();\nconst store=$getWorkflowStaticData('global');\nstore.directSeen=store.directSeen||{};\nstore.publishedNews=store.publishedNews||{};\nconst now=Date.now();\nconst keepMs=Number(cfg.seen_keep_days||21)*86400000;\nfor(const [k,v] of Object.entries(store.directSeen)){ if(!v||now-Number(v)>keepMs) delete store.directSeen[k]; }\n\nfunction clean(s=''){return String(s||'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim();}\nfunction hash(s=''){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0).toString(16);}\nfunction canon(u=''){try{const x=new URL(u);x.hash='';x.search='';return(x.hostname+x.pathname.replace(/\\/$/,'')).toLowerCase();}catch(e){return String(u||'').toLowerCase();}}\nfunction articleUrl(u=''){return /^https:\\/\\/[^/]*meb\\.gov\\.tr\\/.*\\/(?:haber|icerik)\\/\\d+(?:\\/tr)?\\/?(?:[?#].*)?$/i.test(String(u||''));}\nfunction publishedKeys(url='',title='',source=''){return ['url:'+hash(canon(url)),'src-title:'+hash(clean(source).toLowerCase()+'|'+clean(title).toLowerCase())];}\n\nconst found=[];\nlet ok=0,failed=0,discovered=0,seen=0;\nconst inputs=$input.all();\nfor(let i=0;i<inputs.length;i++){\n  const j=inputs[i]?.json||{};\n  const md=meta[i]?.json||{};\n  const raw=String(j.raw||j.data||j.body||'');\n  if(!raw||j.error){failed++;continue;}\n  let obj=null;\n  try{obj=JSON.parse(raw);}catch(e){failed++;continue;}\n  if(obj?.ok!==true||!Array.isArray(obj.items)){failed++;continue;}\n  ok++;\n  for(const v of obj.items){\n    const link=String(v.link||v.official_source_url||'').trim();\n    const title=clean(v.title);\n    if(!title||!articleUrl(link))continue;\n    discovered++;\n    const source=clean(v.source_name||md.source_name||'Millî Eğitim Bakanlığı');\n    const keys=publishedKeys(link,title,source);\n    const directKey=hash(canon(link)+'|'+title.toLocaleLowerCase('tr-TR'));\n    if(store.directSeen[directKey]||keys.some(k=>store.publishedNews[k])){seen++;continue;}\n    const full=clean(v.source_content||v.summary||'');\n    found.push({json:{\n      title,link,official_source_url:link,\n      published:String(v.published||''),\n      summary:clean(v.summary||'').slice(0,2400),\n      source_content:full.slice(0,9000),\n      source_page_summary:clean(v.summary||''),\n      source_image_url:String(v.source_image_url||''),\n      source_image_credit:clean(v.source_image_credit||source),\n      source_name:source,\n      source_host:md.source_host||'',\n      source_type:'DISCOVER',\n      verified:true,meb_relevant:true,\n      direct_seen_key:directKey,\n      ts:Number(v.ts||0)||now,\n      article_enriched:full.length>=120,\n      article_fetch_ok:full.length>=120\n    }});\n  }\n}\nconst uniq=new Map();\nfor(const x of found){\n  const k=canon(x.json.link);\n  if(!uniq.has(k))uniq.set(k,x);\n}\nconst arr=[...uniq.values()].sort((a,b)=>Number(b.json.ts||0)-Number(a.json.ts||0));\nconst maxPick=Math.max(1,Number(cfg.max_items_per_run||3));\nconst picked=arr.slice(0,maxPick);\nif(!picked.length){\n  return [{json:{status_only:true,run_mode:String(cfg.run_mode||'normal'),DURUM:'RESMÎ MEB KAYNAKLARI TARANDI — YENİ YAYIN ADAYI YOK',publish_telegram:false,publish_instagram:false,publish_threads:false,publish_facebook:false,scan_debug:{input:inputs.length,ok,failed,discovered,seen,eligible:0,picked:0}}}];\n}\nreturn picked.map((x,i)=>({json:{...x.json,item_id:i,run_mode:String(cfg.run_mode||'normal'),scan_debug:{input:inputs.length,ok,failed,discovered,seen,eligible:arr.length,picked:picked.length}}}));"
+      },
+      "id": "d824f782-a169-4824-9739-8e95208923a5",
+      "name": "ÖN FİLTRE + TEKRAR KONTROLÜ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4096,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg=$('CONFIG').first().json;\nconst sources=$input.all()\n  .filter(x=>x.json?.status_only!==true && x.json?.article_enriched===true && Number(x.json?.source_content_chars||0)>=120)\n  .slice(0,Math.max(1,Number(cfg.max_items_per_run||1)))\n  .map((item,index)=>({...item.json,item_id:index}));\nif(!sources.length)return[];\n\nconst itemSchema={type:'object',additionalProperties:false,properties:{\n  item_id:{type:'integer'},importance:{type:'integer'},\n  category:{type:'string'},title_main:{type:'string'},title_highlight:{type:'string'},hook:{type:'string'},summary:{type:'string'},\n  bullet_1:{type:'string'},bullet_2:{type:'string'},bullet_3:{type:'string'},\n  source_name:{type:'string'},official_source_url:{type:'string'},\n  hashtags:{type:'array',items:{type:'string'},minItems:5,maxItems:8}\n},required:['item_id','importance','category','title_main','title_highlight','hook','summary','bullet_1','bullet_2','bullet_3','source_name','official_source_url','hashtags']};\nconst schema={type:'object',additionalProperties:false,properties:{results:{type:'array',minItems:1,items:itemSchema}},required:['results']};\n\nconst haberler=sources.map(s=>({\n  item_id:s.item_id,\n  source_title:String(s.title||''),\n  published:String(s.published||''),\n  link:String(s.official_source_url||s.link||''),\n  source_name:String(s.source_name||'Millî Eğitim Bakanlığı'),\n  source_article:String(s.source_content||'').replace(/\\s+/g,' ').slice(0,8500)\n}));\n\nconst prompt=[\n'EĞİTİM GÜNDEM 365 için profesyonel Türkçe haber editörüsün.',\n'SADECE source_article içindeki doğrulanmış gerçekleri kullan. Yeni bilgi, yorum, sonuç, tarih, sayı veya kişi UYDURMA.',\n'Her haber için TAM OLARAK şu alanları üret: item_id, importance, category, title_main, title_highlight, hook, summary, bullet_1, bullet_2, bullet_3, source_name, official_source_url, hashtags.',\n'',\n'ZORUNLU EDİTÖRYAL KURALLAR:',\n'- item_id girdideki item_id ile AYNI olacak.',\n'- official_source_url girdideki link ile AYNI olacak.',\n'- source_name girdideki source_name olacak.',\n'- title_main 28-60 karakter: BEYAZ ANA BAŞLIK. Haberin ana olayını sıfırdan ve profesyonel haber diliyle yaz.',\n'- title_highlight 18-55 karakter: SARI İKİNCİ BAŞLIK. title_main cümlesinin devamı OLAMAZ; ikinci bir açı, kapsam, sonuç veya önem bilgisi vermeli.',\n'- title_main + title_highlight kaynak başlığın aynısı, yakın kopyası veya rastgele ikiye bölünmüş hâli OLAMAZ.',\n'- source_title kelime sırasını ve cümle iskeletini KULLANMA.',\n'- source_title içinden art arda 3 anlamlı kelimeyi title_main/title_highlight içinde aynen kullanma.',\n'- title_main ile title_highlight aynı bilgiyi farklı kelimelerle tekrar ETMEYECEK.',\n'- YASAK örnek: source_title=\"Türkiye-Gürcistan eğitim iş birliği anlaşması imzalandı\" -> title_main=\"Türkiye-Gürcistan eğitim iş\" / title_highlight=\"birliği anlaşması imzalandı\".',\n'- DOĞRU örnek: title_main=\"Türkiye ile Gürcistan eğitimde yeni dönem başlattı\" / title_highlight=\"Anlaşma denkliği ve mesleki eğitimi kapsıyor\".',\n'- Haberin tam gövdesindeki iki farklı editoryal açıyı seç.',\n'- hook kısa önem cümlesi; iki başlığı tekrar etme.',\n'- summary 120-220 karakterlik profesyonel lead; kaynak cümlesini kopyalama.',\n'- bullet_1..3: 0-3 ayrı gerçek. Her biri \"Kısa alt başlık — tek cümle açıklama\" biçiminde. Bilgi yoksa boş string.',\n'- category yalnız: MÜFREDAT, ÖĞRETMEN, ÖĞRENCİ, SINAV, ATAMA, YÖNETİCİ, PROJE, TEKNOLOJİ, MESLEKİ EĞİTİM, ÖZEL EĞİTİM, MEVZUAT, DİĞER MEB.',\n'- importance 0-100 tamsayı.',\n'- hashtags 5-8 kısa etiket.',\n'- Markdown yok. Açıklama yok. YALNIZ geçerli JSON döndür: {\"results\":[...]}',\n'',\n'HABERLER='+JSON.stringify(haberler)\n].join('\\n');\n\nconst openai_body={\n  model:cfg.openai_model,\n  store:false,\n  reasoning:{effort:'low'},\n  max_output_tokens:Math.max(2200,Number(cfg.ai_max_output_tokens||3000)),\n  text:{format:{type:'json_schema',name:'eg365_newsroom_package',strict:true,schema}},\n  input:prompt\n};\nreturn [{json:{sources,openai_body,official_recent_mode:true,content_contract:'EG365_V117_PRO_NEWSROOM'}}];"
+      },
+      "id": "d83e2c11-0ce7-4ad3-af0b-fd1b132557c6",
+      "name": "OPENAI TOPLU İSTEK HAZIRLA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3872,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg=$('CONFIG').first().json;\nconst telegramPublicUrl=String(cfg.telegram_public_url||'https://t.me/egitimgundem365').trim();\nconst telegramCta=`📲 Detaylar Telegram'da: ${telegramPublicUrl}`;\n\nfunction extract(resp){\n  if(!resp)return'';\n  if(typeof resp.output_text==='string')return resp.output_text;\n  for(const o of(resp.output||[]))for(const c of(o.content||[]))if(c.type==='output_text'&&c.text)return c.text;\n  if(Array.isArray(resp.choices))return String(resp.choices?.[0]?.message?.content||'');\n  return'';\n}\nfunction cleanJsonText(s=''){return String(s).replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();}\nfunction cleanText(s=''){return String(s).replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&#39;/g,\"'\").replace(/&quot;/g,'\"').replace(/\\s+/g,' ').trim();}\nfunction officialUrl(url=''){try{const u=new URL(String(url||''));const h=String(u.hostname||'').toLowerCase();return h==='meb.gov.tr'||h.endsWith('.meb.gov.tr');}catch(e){return false;}}\nfunction googleNewsUrl(url=''){return /^https?:\\/\\/(?:news\\.)?google\\.com\\//i.test(String(url||''));}\nfunction directUrl(url=''){return /^https?:\\/\\//i.test(String(url||'')) && !googleNewsUrl(url);}\nfunction officialBonus(url=''){\n  const u=String(url).toLowerCase();\n  if(/meb\\.gov\\.tr\\//.test(u))return 20;\n  if(/resmigazete\\.gov\\.tr|osym\\.gov\\.tr|\\.gov\\.tr\\//.test(u))return 15;\n  return 0;\n}\nfunction escHtml(s=''){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}\nfunction escAttr(s=''){return String(s).replace(/&/g,'&amp;').replace(/\"/g,'&quot;');}\nfunction uniqueUrls(arr=[]){const out=[];const seen=new Set();for(const u of arr){const s=String(u||'').trim();if(!/^https?:\\/\\//i.test(s))continue;const k=s.toLowerCase();if(seen.has(k))continue;seen.add(k);out.push(s);}return out;}\nfunction bestSourceUrl(data={},src={}){\n  const list=uniqueUrls([\n    data.official_source_url,\n    data.source_url,\n    ...(Array.isArray(data.related_urls)?data.related_urls:[]),\n    src.official_source_url,\n    ...(Array.isArray(src.related_urls)?src.related_urls:[]),\n    src.link\n  ]);\n  const official=list.find(officialUrl);\n  if(official) return official;\n  const direct=list.find(directUrl);\n  if(direct) return direct;\n  return list[0]||'';\n}\nfunction relatedSourceUrls(mainUrl,data={},src={}){\n  return uniqueUrls([...(Array.isArray(data.related_urls)?data.related_urls:[]),...(Array.isArray(src.related_urls)?src.related_urls:[]),src.link]).filter(u=>u!==mainUrl && !googleNewsUrl(u)).slice(0,2);\n}\nfunction categoryOf(t=''){\n  t=String(t).toLocaleLowerCase('tr-TR');\n  if(/atama|tayin|yer değiş|norm kadro|personel|öğretmen alım/.test(t))return'Atama & Personel';\n  // Kurum adlarındaki “Genel Müdürlüğü” sözcüğü yönetici haberi sayılmaz.\n  // Yalnızca gerçek yönetici/pozisyon ifadeleri bu kategoriye girer.\n  if(/okul müdürü|müdür yardımcısı|şube müdürü|yönetici görevlendirme|yönetici atama|yönetici seçme|yönetici değerlendirme|eğitim kurumu yönetic/.test(t))return'Yönetici Görevlendirme';\n  if(/yönetmelik|mevzuat|yönerge|genelge|resm.? gazete|tebliğ/.test(t))return'Mevzuat & Resmî Gazete';\n  // Türkçe küçük harfe dönüşümde I -> ı olduğu için uluslararası kısaltmaların iki yazımı da desteklenir.\n  if(/(?:^|[^a-z0-9çğıöşü])(?:isa|ısa)(?=$|[^a-z0-9çğıöşü])|pisa|pısa|timss|tımss|pirls|pırls|lgs|iokbs|sınav|ortak yazılı|ölçme|değerlendirme|kpss|araştırma sonuç/.test(t))return'Sınav & Ölçme';\n  if(/eba|e-okul|e okul|mebbis|öba|mebi/.test(t))return'EBA/e-Okul/MEBBİS';\n  if(/yapay zek|teknoloji|yegitek|fatih|dijital|siber/.test(t))return'Teknoloji & Yapay Zekâ';\n  if(/müfredat|maarif|tymm|öğretim program|ders program/.test(t))return'Müfredat & TYMM';\n  if(/mesleki|mesem|meslek lises/.test(t))return'Meslekî Eğitim';\n  if(/özel eğitim|ram\\b|bilsem|kaynaştırma/.test(t))return'Özel Eğitim & Rehberlik';\n  if(/burs|pansiyon|yurt dış/.test(t))return'Burs & Yurt Dışı';\n  if(/tatil|takvim|eğitim öğretim yılı/.test(t))return'Takvim & Tatil';\n  return'Diğer MEB';\n}\nfunction sentences(s=''){\n  const txt=cleanText(s);\n  const parts=txt.split(/(?<=[.!?])\\s+/).map(x=>x.trim()).filter(x=>x.length>18);\n  if(parts.length)return parts.slice(0,4);\n  return txt?[txt]:[];\n}\nfunction sameish(a='',b=''){\n  const x=cleanText(a).toLocaleLowerCase('tr-TR');\n  const y=cleanText(b).toLocaleLowerCase('tr-TR');\n  if(!x||!y)return false;\n  if(x===y)return true;\n  return x.includes(y)||y.includes(x);\n}\nfunction uniqFacts(list=[], refs=[]){\n  const out=[];\n  for(const raw of (list||[])){\n    const t=cleanText(raw);\n    if(!t)continue;\n    if(sourceLikeV89(t,''))continue;\n    if(refs.some(r=>sameish(t,r)))continue;\n    if(out.some(v=>sameish(v,t)))continue;\n    out.push(t);\n    if(out.length>=3)break;\n  }\n  return out;\n}\nfunction pickLead(candidates=[], title=''){\n  for(const c of candidates||[]){\n    const t=cleanText(c);\n    if(!t)continue;\n    if(sameish(t,title))continue;\n    return t.slice(0,190);\n  }\n  return '';\n}\nfunction publisherFromTitle(title=''){\n  const t=cleanText(title);\n  const m=t.match(/\\s[-–—]\\s([^\\-–—]{2,60})$/);\n  return m?m[1].trim():'';\n}\nfunction stripPublisher(title=''){return cleanText(title).replace(/\\s[-–—]\\s[^\\-–—]{2,60}$/,'').trim();}\nfunction relevance(text=''){return /\\b(meb|milli eğitim|millî eğitim|öğretmen|öğrenci|okul|lgs|iokbs|eba|e okul|e-okul|mebbis|öba|mebi|müfredat|maarif|yönetmelik|yönerge|genelge|atama|görevlendirme|sınav|mesleki eğitim|özel eğitim|bilsem|ram|fatih|yegitek|mesem|akademi|burs|pansiyon|kpss)\\b/i.test(cleanText(text));}\nfunction makeSourceFallback(src,reason){\n  if(!src)return null;\n  const full=cleanText((src.title||'')+' '+(src.summary||''));\n  const isOfficial=officialUrl(src.link||src.official_source_url||'');\n  // Bu node'a ulaşan kaynaklar ÖN FİLTRE tarafından resmî MEB olarak doğrulanmıştır.\n  // AI, resmî kaynağı yanlışlıkla 'ilgili değil/doğrulanmadı' dese bile haberi veto edemez.\n  if(!isOfficial && cfg.fail_open_source_reporting!==true && !relevance(full))return null;\n  const ss=sentences(src.summary||'');\n  let bullets=ss.filter(x=>!sourceLikeV89(x,src.source_name||'')).slice(0,3);\n  const pub=publisherFromTitle(src.title||'');\n  return {\n    item_id:Number(src.item_id||0),\n    meb_relevant:true,\n    verified:isOfficial,\n    source_reported:!isOfficial,\n    confidence:isOfficial?94:74,\n    importance:Number(src.important||0)?78:55,\n    category:categoryOf(full),\n    title_main:stripPublisher(src.title||'').slice(0,112),\n    title_highlight:'',\n    lead:(ss[0]||stripPublisher(src.title||'')).slice(0,190),\n    bullets:bullets.map(x=>cleanText(x).slice(0,180)).filter(Boolean).slice(0,3),\n    source_name:isOfficial?(/osym/i.test(src.link||'')?'ÖSYM Başkanlığı':(/resmigazete/i.test(src.link||'')?'Resmî Gazete':'Millî Eğitim Bakanlığı')):(pub||'Haber kaynağı'),\n    official_source_url:isOfficial?String(src.link||src.official_source_url||''):'',\n    related_urls:[],\n    hashtags:['#MEB','#Eğitim','#MilliEğitim','#EğitimGündemi','#Öğretmen'],\n    publish_telegram:true,publish_instagram:true,\n    _ai_status:'SOURCE_FALLBACK_'+reason,\n    _publication_basis:isOfficial?'OFFICIAL_SOURCE_FALLBACK':'SOURCE_REPORTED_FALLBACK'\n  };\n}\nfunction normalize(data,src){\n  const d={...(data||{})};\n  d.item_id=Number(d.item_id??src?.item_id??0);\n  if(src){\n    d.meb_relevant=true;\n    d.verified=true;\n    d.source_reported=false;\n    d.confidence=Math.max(100,Number(d.confidence||0));\n    d.publish_telegram=true;\n    d.publish_instagram=true;\n    d.official_source_url=String(src.official_source_url||src.link||d.official_source_url||'');\n    d.source_name=cleanText(src.source_name||d.source_name||'Millî Eğitim Bakanlığı');\n  }\n  d.title_main=cleanText(d.title_main||'');\n  d.title_highlight=cleanText(d.title_highlight||'');\n  d.lead=cleanText(d.lead||'');\n  if(!d.lead || sameish(d.lead,d.title_main)){\n    d.lead=pickLead([\n      d.summary,\n      ...(Array.isArray(src?.summary)?src.summary:[src?.summary]),\n      src?.source_content,\n      src?.description,\n      src?.contentSnippet\n    ], d.title_main) || d.title_main;\n  }\n  let b=Array.isArray(d.bullets)?d.bullets.map(cleanText).filter(Boolean):[];\n  b=uniqFacts(b,[d.title_main,d.lead]).filter(x=>!sourceLikeV89(x,d.source_name||'')).slice(0,3);\n  d.bullets=b.map(x=>x.slice(0,160));\n  const _cats=new Set(['MÜFREDAT','ÖĞRETMEN','ÖĞRENCİ','SINAV','ATAMA','YÖNETİCİ','PROJE','TEKNOLOJİ','MESLEKİ EĞİTİM','ÖZEL EĞİTİM','MEVZUAT','DİĞER MEB']); if(!_cats.has(cleanText(d.category||'').toLocaleUpperCase('tr-TR')))d.category=categoryOf((src?.title||'')+' '+(src?.summary||''));\n  if(!cleanText(d.source_name||''))d.source_name=publisherFromTitle(src?.title||'')||'Haber kaynağı';\n  if(!Array.isArray(d.hashtags)||d.hashtags.filter(Boolean).length<5)d.hashtags=['#MEB','#Eğitim','#MilliEğitim','#EğitimGündemi','#Öğretmen'];\n  if(!Array.isArray(d.related_urls))d.related_urls=[];\n  d.publish_telegram=true;\n  d.publish_instagram=true;\n  d.publish_threads=true;\n  d.publish_facebook=true;\n  return d;\n}\n\nconst response=$input.first()?.json||{};\nconst bundle=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};\nconst sources=(bundle.sources||[]).map((s,i)=>({...s,item_id:Number.isFinite(Number(s.item_id))?Number(s.item_id):i}));\nconst sourceById=new Map(sources.map((s,i)=>[Number(s.item_id??i),s]));\nlet rawResults=[];\nlet aiStatus='AI_OK';\nlet aiError='';\nconst aiModelUsed=response._router_model||response.model||'unknown';\n\nif(response.error){\n  aiError=String(response.error.message||response.error.description||'API_ERROR');\n  aiStatus=/rate limit|too many requests|429/i.test(aiError)?'RATE_LIMIT_429':'API_ERROR';\n}else{\n  try{\n    const parsed=JSON.parse(cleanJsonText(extract(response)));\n    rawResults=Array.isArray(parsed.results)?parsed.results:[];\n  }catch(e){aiStatus='JSON_PARSE_ERROR';aiError=String(e.message||e);}\n}\n\nlet results=[];\nfor(const r of rawResults){\n  const id=Number(r?.item_id);\n  const ru=String(r?.official_source_url||r?.source_url||'').trim().toLowerCase();\n  const src=sourceById.get(id)\n    || sources.find(s=>ru && String(s.official_source_url||s.link||'').trim().toLowerCase()===ru)\n    || (sources.length===1?sources[0]:sources[id]);\n  if(src)results.push(normalize(normalizeV89Result(r),src));\n}\nif(!results.length){\n  return [{json:{status_only:true,DURUM:'AI EDİTÖR ÇIKTISI YOK — KAYNAK METİN KOPYASI YAYINLANMADI',ai_status:aiStatus,ai_error:aiError,ai_model_used:aiModelUsed,incelenen_haber_sayisi:sources.length,publish_telegram:false,publish_instagram:false,publish_threads:false,publish_facebook:false}}];\n}\n\nfunction editorialTokens(s=''){\n  return cleanText(s).toLocaleLowerCase('tr-TR').normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9çğıöşü\\s]/gi,' ').split(/\\s+/).filter(x=>x.length>=3);\n}\nfunction editorialSimilarity(a='',b=''){\n  const A=editorialTokens(a),B=editorialTokens(b); if(!A.length||!B.length)return 0;\n  const ca={}; for(const x of A)ca[x]=(ca[x]||0)+1; const cb={}; for(const x of B)cb[x]=(cb[x]||0)+1;\n  let dot=0,aa=0,bb=0; for(const k of Object.keys(ca)){aa+=ca[k]*ca[k];dot+=ca[k]*(cb[k]||0);} for(const k of Object.keys(cb))bb+=cb[k]*cb[k];\n  return dot/(Math.sqrt(aa*bb)||1);\n}\nconst eligible=[];\n// V77: OPENAI TOPLU İSTEK HAZIRLA içindeki sources dizisi zaten resmî MEB filtresinden gelmiştir.\n// Bu nedenle aday seçimi AI'nin meb_relevant/verified/confidence kararına bağlı değildir.\nfor(const src of sources){\n  if(src.article_enriched!==true || Number(src.source_content_chars||0)<120) continue;\n  const itemId=Number(src.item_id||0);\n  const aiData=results.find(x=>Number(x?.item_id)===itemId)||null;\n  if(!aiData) continue;\n  const data=normalize(normalizeV89Result(aiData||{}),src);\n  const sourceUrl=bestSourceUrl(data,src);\n  if(!/^https?:\\/\\//i.test(sourceUrl))continue;\n  if(!sourceUrl)continue;\n  let bullets=(data.bullets||[]).map(x=>cleanText(x)).filter(Boolean).filter(x=>!sourceLikeV89(x,data.source_name||src.source_name||'')).slice(0,3);\n  data.bullets=bullets;\n  if(!cleanText(data.title_main||'')||!cleanText(data.title_highlight||''))continue;\n  if(!cleanText(data.lead||''))data.lead=(sentences(src.summary||'')[0]||stripPublisher(src.title||'')).slice(0,190);\n  if(!cleanText(data.category||''))data.category=categoryOf((src.title||'')+' '+(src.summary||''));\n  data.meb_relevant=true;\n  data.verified=true;\n  data.source_reported=false;\n  data.confidence=100;\n  data.publish_telegram=true;\n  data.publish_instagram=true;\n  data.official_source_url=sourceUrl;\n  const title=[data.title_main,data.title_highlight].filter(Boolean).join(': ').trim();\n  if(!title)continue;\n  const sourceTitle=stripPublisher(src.title||'');\n  const sourceSummary=cleanText(src.source_content||src.summary||'').slice(0,12000);\n  const titleSimilarity=editorialSimilarity(title,sourceTitle);\n  const srcSentences=sourceSummary.split(/(?<=[.!?])\\s+/).map(x=>cleanText(x)).filter(x=>x.length>=30).slice(0,30);\n  const leadSentenceSimilarity=srcSentences.length?Math.max(...srcSentences.map(s=>editorialSimilarity(data.lead||'',s))):0;\n  const leadSimilarity=editorialSimilarity(data.lead||'',sourceSummary);\n  const titleExactish=sameish(title,sourceTitle);\n  const leadExactish=srcSentences.some(s=>sameish(data.lead||'',s));\n  const mainTitle=cleanText(data.title_main||'');\n  const highlightTitle=cleanText(data.title_highlight||'');\n  const sourceMainSimilarity=editorialSimilarity(mainTitle,sourceTitle);\n  const sourceHighlightSimilarity=editorialSimilarity(highlightTitle,sourceTitle);\n  const partsSimilarity=editorialSimilarity(mainTitle,highlightTitle);\n  const continuationTrap=sameish((mainTitle+' '+highlightTitle).trim(),sourceTitle);\n  const actualAiResult=!!aiData && aiStatus==='AI_OK' && mainTitle.length>=20 && highlightTitle.length>=12 && cleanText(data.lead||'').length>=55;\n  const articleReady=src.article_enriched===true && Number(src.source_content_chars||0)>=120;\n  const editorialPass=actualAiResult && articleReady\n    && !titleExactish && !continuationTrap\n    && titleSimilarity<0.84\n    && sourceMainSimilarity<0.84\n    && sourceHighlightSimilarity<0.80\n    && partsSimilarity<0.70\n    && leadSentenceSimilarity<0.94;\n  if(!editorialPass) continue;\n  data.editorial_quality_pass=true;\n  data.title_similarity=Number(titleSimilarity.toFixed(3));\n  data.lead_similarity=Number(leadSimilarity.toFixed(3));\n  data.lead_sentence_similarity=Number(leadSentenceSimilarity.toFixed(3));\n  const score=100 + Number(data.importance||0)*0.55 + officialBonus(sourceUrl) + 12 + Number(src.priority||0)*5 + Number(src.important||0)*7;\n  eligible.push({data,src,sourceUrl,title,bullets:data.bullets.slice(0,3),score});\n}\n\neligible.sort((a,b)=>b.score-a.score);\nif(!eligible.length){\n  return [{json:{status_only:true,DURUM:'EDİTÖRYAL KALİTE KAPISINI GEÇEN HABER YOK — YAYIN YAPILMADI',ai_status:aiStatus,ai_error:aiError,ai_model_used:aiModelUsed,incelenen_haber_sayisi:sources.length,source_debug:sources.map(s=>({title:s.title,link:s.link,official_source_url:s.official_source_url})),publish_telegram:false,publish_instagram:false,publish_threads:false,publish_facebook:false}}];\n}\n\nconst pick=eligible[0];\nconst data=pick.data,src=pick.src,sourceUrl=pick.sourceUrl,bullets=pick.bullets,title=pick.title;\nconst related=relatedSourceUrls(sourceUrl,data,src);\nconst tags=(data.hashtags||[]).map(x=>String(x).trim()).filter(Boolean).map(x=>x.startsWith('#')?x:'#'+x.replace(/\\s+/g,'')).slice(0,10);\nwhile(tags.length<5){for(const t of ['#MEB','#Eğitim','#MilliEğitim','#EğitimGündemi','#Öğretmen']){if(!tags.includes(t))tags.push(t);if(tags.length>=5)break;}}\nconst verified=data.verified===true;\nconst basis=verified?'AI/RESMÎ KAYNAK DOĞRULAMASI':'KAYNAK HABERİ — AI SERVİSİ GEÇİCİ OLARAK KULLANILAMADI';\nconst sourceLabel=verified?'Resmî / doğrulanmış kaynak':'Kaynak haberi';\nconst insta=[title,'',data.lead,...(bullets.length?['',...bullets.map(x=>'• '+x)]:[]),'',`Kaynak: ${data.source_name||'Haber kaynağı'}`,'',telegramCta,'',tags.join(' ')].join('\\n').slice(0,2100);\nconst tgPlain=[`📢 ${data.category||categoryOf(title)}`,title,'',data.lead,...(bullets.length?['',...bullets.map(x=>'• '+x)]:[]),'',`🔗 ${sourceLabel}: ${sourceUrl}`,...(verified?[]:['','ℹ️ Not: Bu paylaşım kaynak haberine dayanır; AI doğrulama servisi bu turda kullanılamadı.'])].join('\\n').slice(0,1000);\nconst tgHtml=[\n  `📢 ${escHtml(data.category||categoryOf(title))}`,\n  escHtml(title),\n  '',\n  escHtml(data.lead),\n  ...(bullets.length?['',...bullets.map(x=>'• '+escHtml(x))]:[]),\n  '',\n  `🔗 <a href=\"${escAttr(sourceUrl)}\">${escHtml(sourceLabel)}</a>`,\n  ...(verified?[]:['','ℹ️ ' + escHtml('Bu paylaşım kaynak haberine dayanır; AI doğrulama servisi bu turda kullanılamadı.')])\n].join('\\n').slice(0,1020);\nconst th=[title,'',data.lead,...(bullets.length?['',...bullets.slice(0,2).map(x=>'• '+x)]:[]),'',`Kaynak: ${sourceUrl}`,'',telegramCta].join('\\n').slice(0,480);\nconst fb=[title,'',data.lead,...(bullets.length?['',...bullets.map(x=>'• '+x)]:[]),'',`🔗 ${sourceLabel}: ${sourceUrl}`,...(verified?[]:['ℹ️ Kaynak haberi; AI doğrulama servisi bu turda kullanılamadı.']),'',telegramCta,'',tags.join(' ')].join('\\n').slice(0,4000);\n\nreturn [{json:{\n  ...src,...data,\n  status_only:false,\n  ai_status:data._ai_status||aiStatus,\n  ai_error:aiError,\n  ai_model_used:aiModelUsed,\n  publication_basis:basis,\n  selection_score:Math.round(pick.score*10)/10,\n  selection_reason:'EN_YUKSEK_UYGUNLUK_PUANI',\n  title,\n  bullets,\n  bullet_1:bullets[0]||'',bullet_2:bullets[1]||'',bullet_3:bullets[2]||'',bullet_count:bullets.length,\n  content_quality_pass:true,content_quality_version:'V113_NEWSROOM_EDITORIAL_GATE',\n  hashtags:tags,\n  source_url:sourceUrl,\n  preferred_source_url:sourceUrl,\n  source_related_urls:related,\n  publish_telegram:true,\n  publish_instagram:true,\n  publish_threads:true,\n  publish_facebook:true,\n  instagram_caption:insta,\n  telegram_caption:tgPlain,\n  telegram_caption_html:tgHtml,\n  threads_caption:th,\n  facebook_caption:fb\n}}]\nfunction normalizeV89Result(r={}){\n  if(r.title_main!==undefined || r.title_highlight!==undefined || r.title!==undefined || r.summary!==undefined || r.bullet_1!==undefined){\n    const main=cleanText(r.title_main||r.title||'');\n    const hi=cleanText(r.title_highlight||'');\n    const full=[main,hi].filter(Boolean).join(' ');\n    const lead=pickLead([r.summary,r.hook], full) || cleanText(r.summary||'') || full;\n    const rawBullets=Array.isArray(r.maddeler)?r.maddeler:[r.bullet_1,r.bullet_2,r.bullet_3];\n    const b=uniqFacts(rawBullets,[main,hi,lead]);\n    return {...r,meb_relevant:true,verified:true,confidence:100,title_main:main,title_highlight:hi,lead,bullets:b.slice(0,3),publish_telegram:true,publish_instagram:true};\n  }\n  return r;\n}\nfunction sourceLikeV89(s='',source=''){\n const t=cleanText(s).toLocaleLowerCase('tr-TR'); const sn=cleanText(source).toLocaleLowerCase('tr-TR');\n return !!t && (/kaynak kurum|resm[iî] kaynak|ayr[iı]nt[iı]lar .*kaynak|resm[iî] kaynakta|taraf[iı]ndan (?:yay[iı]mland[iı]|yay[iı]nland[iı]|duyuruldu|payla[sş][iı]ld[iı])/.test(t)||(sn&&t===sn));\n}\n;"
+      },
+      "id": "aaaf3d5b-d6a9-451c-adc8-4f3954a688db",
+      "name": "AI SONUÇLARI AÇ + YAYIN FİLTRESİ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const x=$json||{};\nfunction clean(s=''){return String(s||'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim();}\nconst bullets=(Array.isArray(x.bullets)?x.bullets:[x.bullet_1,x.bullet_2,x.bullet_3]).map(clean).filter(Boolean).slice(0,3);\nreturn [{json:{...x,image_category:clean(x.category||'GÜNDEM').toUpperCase(),image_title:[clean(x.title_main||''),clean(x.title_highlight||'')].filter(Boolean).join(': '),image_summary:clean(x.lead||x.summary||''),image_bullets:bullets,image_source:clean(x.source_name||'MEB'),source_image_url:clean(x.source_image_url||''),source_image_credit:clean(x.source_image_credit||x.source_name||'MEB'),image_template_version:'EG365_RENDERER_V6_EXPLICIT_EDITORIAL_SPLIT'}}];"
+      },
+      "id": "f6c98f7f-7110-4fa6-b9eb-021b255a2f6b",
+      "name": "GÖRSEL ŞABLONU HAZIRLA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8787/render",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "image/jpeg,image/png;q=0.9,*/*;q=0.1"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.render_request) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "timeout": 90000
+        }
+      },
+      "id": "e3d127a0-c74a-4a31-9969-c93b48dc6402",
+      "name": "1080x1350 JPG BINARY OLUŞTUR",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1328,
+        912
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originals=$('SON DUPLICATE KONTROLÜ').all();\nconst store=$getWorkflowStaticData('global');\nstore.inflightNews=store.inflightNews||{};\nreturn $input.all().map((item,i)=>{\n  const src=originals[i]?.json || $('ŞABLON + METİN KOORDİNATLA').itemMatching(i).json || $('GÖRSEL ŞABLONU HAZIRLA').itemMatching(i).json;\n  if(!item.binary?.data){\n    for(const k of (src?._published_memory_keys||[])) delete store.inflightNews[k];\n    throw new Error('Renderer binary üretilemedi (binary.data yok). Inflight kilidi temizlendi; tekrar denenebilir.');\n  }\n  item.binary.data.fileName='eg365_'+(Date.now())+'.jpg';\n  item.binary.data.fileExtension='jpg';\n  item.binary.data.mimeType='image/jpeg';\n  return {json:{...src,image_render_mode:'eg365_renderer_v5_newsroom_pro',image_binary_ready:true},binary:item.binary};\n});"
+      },
+      "id": "38ff6a8f-fcdb-46c1-9020-911c4d7c42c1",
+      "name": "GÖRSEL BINARY META EKLE",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1648,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg=$('CONFIG').first().json;\nreturn $input.all().map(item=>({json:{\n  DURUM:cfg.dry_run?'DRY-RUN / ÖNİZLEME':(cfg.live_test_mode?'CANLI İLK PAYLAŞIM TESTİ':'CANLI MOD'),\n  AI_DURUM:item.json.ai_status||'AI_OK',\n  CANLI_TEST:!!cfg.live_test_mode,\n  AI_MODEL:item.json.ai_model_used||'',\n  baslik:item.json.title,\n  kategori:item.json.category,\n  guven:item.json.confidence,\n  onem:item.json.importance,\n  gorsel_url:item.json.image_url,\n    public_image_url:item.json.public_image_url||item.json.image_url,\n    image_host:item.json.image_host||'quickchart',\n  telegram_yayin:item.json.publish_telegram,\n  instagram_yayin:item.json.publish_instagram,\n  threads_yayin:item.json.publish_threads,\n  facebook_yayin:item.json.publish_facebook,\n  platform_hazir:{\n    telegram:!!cfg.telegram_bot_token,\n    instagram:!!cfg.instagram_user_id&&!!cfg.instagram_access_token,\n    threads:!!cfg.threads_access_token,\n    facebook:!!cfg.facebook_page_id&&!!cfg.facebook_page_access_token\n  },\n  telegram:item.json.telegram_caption,\n  instagram:item.json.instagram_caption,\n  threads:item.json.threads_caption,\n  facebook:item.json.facebook_caption\n}}));"
+      },
+      "id": "e96e92b3-7792-48c7-8cb4-e4467e3c263f",
+      "name": "TEST ÇIKTISI",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2672,
+        656
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg=$('CONFIG').first().json;if(cfg.dry_run)return[];const rows=$input.all().filter(x=>x.json?.publish_telegram===true);return cfg.live_test_mode?rows.slice(0,cfg.live_test_max_posts||1):rows.slice(0,1);"
+      },
+      "id": "f86be398-8ff7-40a7-bf07-74515bd08f8b",
+      "name": "TELEGRAM CANLI FİLTRE",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('CONFIG').first().json.telegram_bot_token }}/sendPhoto",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $('CONFIG').first().json.telegram_chat_id }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $json.telegram_caption_html || $json.telegram_caption }}"
+            },
+            {
+              "name": "parse_mode",
+              "value": "HTML"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "photo",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "2193c1b1-c723-4a40-bd4c-fde3b362f751",
+      "name": "TELEGRAM YAYINLA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2176,
+        432
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg=$('CONFIG').first().json;if(cfg.dry_run)return[];if(!String(cfg.instagram_access_token||'').trim())return[];const rows=$input.all().filter(x=>x.json?.publish_instagram===true);return cfg.live_test_mode?rows.slice(0,cfg.live_test_max_posts||1):rows.slice(0,1);"
+      },
+      "id": "a63b5d18-74f9-4b22-8b71-5c36129824cb",
+      "name": "INSTAGRAM CANLI FİLTRE",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2736,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/{{ $('CONFIG').first().json.instagram_api_version }}/{{ $('CONFIG').first().json.instagram_user_id }}/media",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "image_url",
+              "value": "={{ $json.public_image_url || $json.image_url }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $json.instagram_caption }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('CONFIG').first().json.instagram_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": false,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 60000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept-Encoding",
+              "value": "identity"
+            }
+          ]
+        }
+      },
+      "id": "72e312b4-685f-4138-8a94-ebb3f63f4d5c",
+      "name": "INSTAGRAM CONTAINER",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2944,
+        912
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/{{ $('CONFIG').first().json.instagram_api_version }}/{{ $('CONFIG').first().json.instagram_user_id }}/media_publish",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $('INSTAGRAM CONTAINER').first().json.id || $('INSTAGRAM CONTAINER').first().json.body?.id || $('INSTAGRAM CONTAINER').first().json.data?.id }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('CONFIG').first().json.instagram_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": false,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 60000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept-Encoding",
+              "value": "identity"
+            }
+          ]
+        }
+      },
+      "id": "29bdc852-1dc3-4bf3-9e11-a5245678277a",
+      "name": "INSTAGRAM YAYINLA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3376,
+        912
+      ],
+      "retryOnFail": true,
+      "maxTries": 12,
+      "waitBetweenTries": 5000,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg=$('CONFIG').first().json;if(cfg.dry_run)return[];if(!String(cfg.threads_access_token||'').trim())return[];const rows=$input.all().filter(x=>x.json?.publish_threads===true);return cfg.live_test_mode?rows.slice(0,cfg.live_test_max_posts||1):rows.slice(0,1);"
+      },
+      "id": "3e29e4ea-806c-4335-a904-43a30418bfb2",
+      "name": "THREADS CANLI FİLTRE",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2768,
+        1344
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.threads.net/{{ $('CONFIG').first().json.threads_api_version }}/me/threads",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "media_type",
+              "value": "IMAGE"
+            },
+            {
+              "name": "image_url",
+              "value": "={{ $json.public_image_url || $json.image_url }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.threads_caption }}"
+            },
+            {
+              "name": "alt_text",
+              "value": "={{ $json.title }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('CONFIG').first().json.threads_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": false,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 60000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept-Encoding",
+              "value": "identity"
+            }
+          ]
+        }
+      },
+      "id": "f23cd07b-1119-4fbe-b48f-451e5a2f5dbb",
+      "name": "THREADS CONTAINER",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2976,
+        1344
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.threads.net/{{ $('CONFIG').first().json.threads_api_version }}/me/threads_publish",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $('THREADS CONTAINER').first().json.id || $('THREADS CONTAINER').first().json.body?.id || $('THREADS CONTAINER').first().json.data?.id }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('CONFIG').first().json.threads_access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": false,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 60000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept-Encoding",
+              "value": "identity"
+            }
+          ]
+        }
+      },
+      "id": "ce23a5b3-b2c5-45cc-b4ef-48c518756aa4",
+      "name": "THREADS YAYINLA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3424,
+        1344
+      ],
+      "retryOnFail": true,
+      "maxTries": 12,
+      "waitBetweenTries": 5000,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg=$('CONFIG').first().json;if(cfg.dry_run)return[];if(!String(cfg.facebook_page_id||'').trim()||!String(cfg.facebook_page_access_token||'').trim())return[];const rows=$input.all().filter(x=>x.json?.publish_facebook===true);return cfg.live_test_mode?rows.slice(0,cfg.live_test_max_posts||1):rows.slice(0,1);"
+      },
+      "id": "f854b75b-250d-4c18-8ba3-8c5cec2125cc",
+      "name": "FACEBOOK CANLI FİLTRE",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        1680
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('CONFIG').first().json.facebook_api_version }}/{{ $('CONFIG').first().json.facebook_page_id }}/photos",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "caption",
+              "value": "={{ $json.facebook_caption }}"
+            },
+            {
+              "name": "published",
+              "value": "true"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('CONFIG').first().json.facebook_page_access_token }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "source",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "6bbf8bb1-34ba-4a69-a508-ba011563af6d",
+      "name": "FACEBOOK YAYINLA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        1680
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/responses",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('CONFIG').first().json.openai_api_key }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $('OPENAI TOPLU İSTEK HAZIRLA').first().json.openai_body, { model: 'gpt-5.4-mini' })) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "cfa260f8-7aa5-488e-bbc0-9ed6e041cc61",
+      "name": "CHATGPT 1/5 - GPT-5.4-MINI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2416,
+        1664
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/responses",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('CONFIG').first().json.openai_api_key }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $('OPENAI TOPLU İSTEK HAZIRLA').first().json.openai_body, { model: 'gpt-5.6-luna' })) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "48a13f12-ec2f-4338-936b-47a894e24142",
+      "name": "CHATGPT 2/5 - GPT-5.6-LUNA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1856,
+        1312
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/responses",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('CONFIG').first().json.openai_api_key }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $('OPENAI TOPLU İSTEK HAZIRLA').first().json.openai_body, { model: 'gpt-5.6-sol' })) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "287dd175-e15a-461f-9abf-945fe577b48e",
+      "name": "CHATGPT 3/5 - GPT-5.6-SOL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1376,
+        1520
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/responses",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('CONFIG').first().json.openai_api_key }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $('OPENAI TOPLU İSTEK HAZIRLA').first().json.openai_body, { model: 'gpt-5.6-terra' })) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "549a70c2-7de5-47db-9dc4-029b8d5ca572",
+      "name": "CHATGPT 4/5 - GPT-5.6-TERRA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -816,
+        1664
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/responses",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('CONFIG').first().json.openai_api_key }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $('OPENAI TOPLU İSTEK HAZIRLA').first().json.openai_body, { model: 'gpt-6-astra' })) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "519894ac-a1b0-4a61-8e98-28d504fe9aaf",
+      "name": "CHATGPT 5/5 - GPT-6-ASTRA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -288,
+        1664
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [{json:{...r,_router_model:\"gpt-5.4-mini\",_router_attempt:1,_semantic_valid:true}}];\nreturn [];"
+      },
+      "id": "5e36923c-c4f2-405c-b97c-10ce8f6769ac",
+      "name": "MODEL 1 BAŞARILI - DEVAM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2288,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [{json:{...r,_router_model:\"gpt-5.6-luna\",_router_attempt:2,_semantic_valid:true}}];\nreturn [];"
+      },
+      "id": "0597c8f6-e027-4896-b0f1-ac6370f32b80",
+      "name": "MODEL 2 BAŞARILI - DEVAM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1664,
+        1152
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [{json:{...r,_router_model:\"gpt-5.6-sol\",_router_attempt:3,_semantic_valid:true}}];\nreturn [];"
+      },
+      "id": "d824a3bd-4968-4b06-b279-906dcbda6ba8",
+      "name": "MODEL 3 BAŞARILI - DEVAM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [{json:{...r,_router_model:\"gpt-5.6-terra\",_router_attempt:4,_semantic_valid:true}}];\nreturn [];"
+      },
+      "id": "a8f2b799-8c80-458a-9dfd-26c478d7ba47",
+      "name": "MODEL 4 BAŞARILI - DEVAM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        1312
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [{json:{...r,_router_model:'gpt-6-astra',_router_attempt:5,_semantic_valid:true}}];\nreturn [{json:{error:r.error||{message:'MODEL_5_SEMANTIC_INVALID'},_router_model:'gpt-6-astra',_router_attempt:5,_semantic_failover:true}}];"
+      },
+      "id": "cbbb0250-e61c-4a52-9e4c-a49410a2b037",
+      "name": "MODEL 5 SONUÇ - DEVAM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        1632
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [];\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json;\nreturn [{json:{...b,_router_previous_error:r.error||{message:'MODEL_1_SEMANTIC_INVALID'},_semantic_failover:true}}];"
+      },
+      "id": "5f6ebdcf-6338-49a6-acc6-0968f47f7932",
+      "name": "MODEL 1 HATA - SONRAKİNE GEÇ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2016,
+        1664
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [];\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json;\nreturn [{json:{...b,_router_previous_error:r.error||{message:'MODEL_2_SEMANTIC_INVALID'},_semantic_failover:true}}];"
+      },
+      "id": "ace888cc-4f4b-4859-9662-fcfa10e3637a",
+      "name": "MODEL 2 HATA - SONRAKİNE GEÇ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1664,
+        1504
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [];\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json;\nreturn [{json:{...b,_router_previous_error:r.error||{message:'MODEL_3_SEMANTIC_INVALID'},_semantic_failover:true}}];"
+      },
+      "id": "7d3506b0-e860-45f7-b4a3-d8efcc1ac208",
+      "name": "MODEL 3 HATA - SONRAKİNE GEÇ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1136,
+        1664
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [];\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json;\nreturn [{json:{...b,_router_previous_error:r.error||{message:'MODEL_4_SEMANTIC_INVALID'},_semantic_failover:true}}];"
+      },
+      "id": "925ffa4b-b91c-4d86-a1f4-88f2ee98416a",
+      "name": "MODEL 4 HATA - SONRAKİNE GEÇ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        1664
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg=$('CONFIG').first().json;\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json;\nif(!b||!b.openai_body)return[];\nconst p=String(b.openai_body.input||'')+'\\n\\nSADECE geçerli JSON döndür. Markdown/kod bloğu kullanma. Biçim: {\"results\":[...]}';\nreturn[{json:{...b,omniroute_body:{\n model:cfg.omniroute_model||'auto/offline',\n messages:[{role:'user',content:p}],\n temperature:0.1,\n max_tokens:cfg.ai_max_output_tokens||1800\n},_omniroute_api_mode:'CHAT_COMPLETIONS'}}];"
+      },
+      "id": "42ddb375-a7f4-4d44-a9bd-2a7ba20204c0",
+      "name": "KAYNAK DOĞRULAMA + OMNIROUTE HAZIRLA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3584,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('CONFIG').first().json.omniroute_base_url_docker + '/chat/completions' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('CONFIG').first().json.omniroute_api_key || 'any-string' }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.omniroute_body) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": "={{ $('CONFIG').first().json.omniroute_timeout_ms || 120000 }}"
+        }
+      },
+      "id": "829f2dc7-d179-4544-a3cf-b6d4668fcc37",
+      "name": "OMNIROUTE 1 - DOCKER HOST - PROVIDER FAILOVER",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3328,
+        1072
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nconst txt=extractText(r);\nif(semanticOk(r)) return [{json:{...r,output_text:txt,_router_model:\"omniroute:deepseek-v4-flash\",_router_attempt:\"OR_DOCKER\",_provider_failover:true,_semantic_valid:true}}];\nreturn [];"
+      },
+      "id": "4f9240c7-08fa-4aa6-90c0-7301f1a00c6d",
+      "name": "OMNIROUTE 1 BAŞARILI - DEVAM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3088,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [];\nconst b=$('KAYNAK DOĞRULAMA + OMNIROUTE HAZIRLA').first().json;\nconst backup=JSON.parse(JSON.stringify(b)); backup.omniroute_body={...(backup.omniroute_body||{}),model:$('CONFIG').first().json.omniroute_backup_model||'ddgw/mistral-small-2603'}; return [{json:{...backup,_omniroute_error_1:r.error||{message:'Primary OmniRoute semantik olarak geçerli yanıt üretmedi'},_semantic_failover:true}}];"
+      },
+      "id": "3c783adb-c584-4d4d-9c0b-06dcb6254353",
+      "name": "OMNIROUTE 1 HATA - LOCALHOST DENE",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3056,
+        1136
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('CONFIG').first().json.omniroute_base_url_docker + '/chat/completions' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('CONFIG').first().json.omniroute_api_key || 'any-string' }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.omniroute_body) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": "={{ $('CONFIG').first().json.omniroute_timeout_ms || 120000 }}"
+        }
+      },
+      "id": "35644db1-ac20-4494-9ec8-66df836bc868",
+      "name": "OMNIROUTE 2 - LOCALHOST - PROVIDER FAILOVER",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2800,
+        1136
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nconst txt=extractText(r);\nif(semanticOk(r)) return [{json:{...r,output_text:txt,_router_model:\"omniroute:mistral-small-2603\",_router_attempt:\"OR_LOCAL\",_provider_failover:true,_semantic_valid:true}}];\nreturn [];"
+      },
+      "id": "ce0c8b51-074f-4109-ab81-525be0b47c90",
+      "name": "OMNIROUTE 2 BAŞARILI - DEVAM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2544,
+        992
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [];\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json;\nreturn [{json:{...b,_omniroute_error_2:r.error||{message:'Local OmniRoute semantik olarak geçerli yanıt üretmedi'},_router_fallback:'DIRECT_OPENAI_V7',_semantic_failover:true}}];"
+      },
+      "id": "d469992a-3c63-47a8-80d0-6a82464a4f02",
+      "name": "OMNIROUTE 2 HATA - V7 OPENAI YEDEK",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2720,
+        1664
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://catbox.moe/user/api.php",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "reqtype",
+              "value": "fileupload"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "fileToUpload",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept-Encoding",
+              "value": "identity"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": false,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "f57b8ce2-902b-480a-b90d-9e286e309b80",
+      "name": "CATBOX PUBLIC URL YÜKLE",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2080,
+        912
+      ],
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originals=$('GÖRSEL BINARY META EKLE').all();\nreturn $input.all().map((item,i)=>{\n  const src=originals[i]?.json || originals[0]?.json || {};\n  const j=item.json||{};\n  const raw=j.body ?? j.data ?? j.response ?? j.url ?? '';\n  const url=String(raw||'').trim();\n  if(!/^https:\\/\\/files\\.catbox\\.moe\\/[A-Za-z0-9._-]+$/i.test(url)) throw new Error('Catbox public URL alınamadı: '+JSON.stringify(j).slice(0,500));\n  return {json:{...src,image_url:url,public_image_url:url,image_host:'catbox',image_public_ready:true}};\n});"
+      },
+      "id": "7136852f-cabd-4362-ac4c-5dc9775ad8b1",
+      "name": "PUBLIC GÖRSEL URL EKLE",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 6
+      },
+      "id": "95a892c8-be1e-4c1e-b414-a10dbe31020a",
+      "name": "PUBLIC GÖRSEL HAZIR OLSUN - 3 SN",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2512,
+        912
+      ],
+      "webhookId": "b4902b09-1182-4d4b-899b-5e5f15dd7295"
+    },
+    {
+      "parameters": {},
+      "id": "3add5f0b-aaa4-4c07-9c47-b345919a8c35",
+      "name": "INSTAGRAM CONTAINER HAZIR - 5 SN",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3152,
+        912
+      ],
+      "webhookId": "a51ea651-0843-4731-99fa-d6a2ddf02170"
+    },
+    {
+      "parameters": {},
+      "id": "3f104d91-d4ea-484c-83ff-9fa24e1e23f3",
+      "name": "THREADS CONTAINER HAZIR - 5 SN",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3216,
+        1344
+      ],
+      "webhookId": "0ce9ca71-f63f-43a3-b499-39ede67fb308"
+    },
+    {
+      "parameters": {},
+      "id": "5f0ae39c-4b45-44ca-a261-ca5c53260fde",
+      "name": "HABERLERİ ŞİMDİ BAŞLAT",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -5008,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// V89: Madde sayısı yayın veto koşulu değildir. 0-3 madde geçerlidir.\nconst out=[];\nfor(const item of $input.all()){\n  const j=item?.json||{};\n  const url=String(j.official_source_url||j.source_url||j.preferred_source_url||j.link||'').trim();\n  const title=String(j.title_main||j.title||j.image_title||'').trim();\n  const summary=String(j.summary||j.lead||'').trim();\n  const realCandidate=Boolean(url&&title&&(summary||j.status_only!==true));\n  if(j.status_only===true && !realCandidate) continue;\n  const bullets=(Array.isArray(j.bullets)?j.bullets:[j.bullet_1,j.bullet_2,j.bullet_3]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,3);\n  out.push({json:{...j,status_only:false,bullets,bullet_1:bullets[0]||'',bullet_2:bullets[1]||'',bullet_3:bullets[2]||'',bullet_count:bullets.length,_candidate_gate_passed:true,_candidate_gate_version:'V89_0_3'}});\n}\nreturn out;"
+      },
+      "id": "3229c88b-eb30-4348-bcc5-4f65b3bfdd01",
+      "name": "YAYIN ADAYI VARSA DEVAM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        880
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:8787/health",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 15000
+        }
+      },
+      "id": "0d623354-d5d5-4a90-995c-f5f19c4755cf",
+      "name": "ANA ŞABLONU PUBLIC YÜKLE",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        848,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const src=$('GÖRSEL ŞABLONU HAZIRLA').first().json || {};\nconst health=$json || {};\nfunction clean(s=''){return String(s||'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim();}\nconst category=clean(src.image_category||'GÜNDEM'),title=clean(src.image_title),summary=clean(src.image_summary),source=clean(src.image_source||'MEB');\nconst bullets=(src.image_bullets||[]).map(clean).filter(Boolean).slice(0,3);\nif(!category||!title||!summary||!source)throw new Error('V115 renderer payload zorunlu alan eksik.');\nconst rv=String(health?.renderer_version||health?.version||'');\nif(health?.ok!==true||!rv.includes('V6'))throw new Error('EG365 Renderer V6 health başarısız: '+JSON.stringify(health));\nconst render_request={category,title,summary,bullets,source,source_image_url:clean(src.source_image_url||''),source_image_credit:clean(src.source_image_credit||source),source_url:clean(src.source_url||src.official_source_url||src.link||''),news_id:src.memory_key||src.id||'',website:'www.eg365.com'};\nreturn [{json:{...src,renderer_health:health,image_template_version:'EG365_RENDERER_V6_NEWSROOM_PRO',image_bullet_count:bullets.length,render_request}}];"
+      },
+      "id": "b8cee8e0-a5b9-45a3-b916-69319563e532",
+      "name": "ŞABLON + METİN KOORDİNATLA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const store=$getWorkflowStaticData('global');\nconst now=Date.now();\nstore.backfill5={\n  active:true,\n  status:'MANUEL_AKTİF',\n  startedAt:now,\n  startTs:now-(5*24*60*60*1000),\n  endTs:now,\n  lastRunAt:now,\n  lastCandidateAt:0,\n  completedAt:0,\n  processed:0,\n  skippedDuplicates:0,\n  emptyScans:0,\n  autoStarted:false,\n  recoveryReason:'MANUEL_5_GÜN'\n};\nreturn [{json:{run_mode:'backfill',backfill_start:true,backfill_active:true,window_start:new Date(store.backfill5.startTs).toISOString(),window_end:new Date(store.backfill5.endTs).toISOString()}}];"
+      },
+      "id": "98292c0b-c6d9-46f6-9eb6-b2025cf9f041",
+      "name": "5 GÜNLÜK ARŞİVİ AKTİF ET",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5264,
+        1664
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 60
+            }
+          ]
+        }
+      },
+      "id": "46d24b77-e293-420c-9e91-60f06022e16a",
+      "name": "ARŞİV SAATLİK TETİK",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -5712,
+        1904
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const store=$getWorkflowStaticData('global');\nconst now=Date.now();\nconst HOUR=60*60*1000;\nconst DAY=24*HOUR;\nconst MAX_LOOKBACK=7*DAY;      // 5 günlük kesinti için 7 günlük güvenlik penceresi.\nconst SAFETY=2*HOUR;           // Kesinti sınırında 2 saat tampon.\nconst AUTO_GAP=3*HOUR;         // 3+ saatlik nabız kesintisi otomatik kurtarma sayılır.\n\nstore.backfill5=store.backfill5||{active:false,status:'PASİF'};\n\nconst previousHeartbeat=Number(store.archiveHourlyHeartbeatAt||0);\nconst firstHeartbeat=!previousHeartbeat;\nconst gapMs=previousHeartbeat?Math.max(0,now-previousHeartbeat):0;\nconst gapHours=previousHeartbeat?Math.round((gapMs/HOUR)*10)/10:null;\n\n// Nabız bu üretim yürütmesinde güncellenir. Üretim yürütmeleri arasında kalıcıdır.\nstore.archiveHourlyHeartbeatAt=now;\n\n// Arşiv zaten aktifken Docker/n8n kapandıysa eski pencereyi kaybetme;\n// kesinti sonrasındaki zamanı aynı arşiv penceresine ekle.\nif(store.backfill5.active===true){\n  const oldStart=Number(store.backfill5.startTs||0);\n  const oldEnd=Number(store.backfill5.endTs||0);\n  if(previousHeartbeat && gapMs>=AUTO_GAP){\n    const recoveryStart=Math.max(now-MAX_LOOKBACK,previousHeartbeat-SAFETY);\n    store.backfill5.startTs=oldStart?Math.min(oldStart,recoveryStart):recoveryStart;\n    store.backfill5.endTs=now;\n    store.backfill5.status='OTOMATİK_KESİNTİ_KURTARMA';\n    store.backfill5.autoStarted=true;\n    store.backfill5.recoveryReason='AKTİF_ARŞİV_KESİNTİ_SONRASI';\n    store.backfill5.detectedGapHours=gapHours;\n    store.backfill5.lastRunAt=now;\n    return [{json:{\n      run_mode:'backfill',\n      backfill_hourly:true,\n      backfill_active:true,\n      backfill_auto:true,\n      recovery_reason:store.backfill5.recoveryReason,\n      detected_gap_hours:gapHours,\n      window_start:new Date(store.backfill5.startTs).toISOString(),\n      window_end:new Date(store.backfill5.endTs).toISOString()\n    }}];\n  }\n\n  // Normal saatlik devam: pencereyi ileri kaydırma; başlangıçta sabitlenen pencere korunur.\n  store.backfill5.lastRunAt=now;\n  return [{json:{\n    run_mode:'backfill',\n    backfill_hourly:true,\n    backfill_active:true,\n    backfill_auto:!!store.backfill5.autoStarted,\n    recovery_reason:store.backfill5.recoveryReason||'ACTIVE_BACKFILL',\n    window_start:new Date(Number(store.backfill5.startTs||now-MAX_LOOKBACK)).toISOString(),\n    window_end:new Date(Number(store.backfill5.endTs||now)).toISOString()\n  }}];\n}\n\n// Yeni kurulum/yeniden başlatma sonrası ilk üretim nabzı veya 3+ saatlik kesinti:\n// 7 günlük güvenlik penceresi aç. Böylece 5 günlük Docker kesintisinin tamamı kapsanır.\nif(firstHeartbeat || gapMs>=AUTO_GAP){\n  const startTs=firstHeartbeat\n    ? now-MAX_LOOKBACK\n    : Math.max(now-MAX_LOOKBACK,previousHeartbeat-SAFETY);\n\n  store.backfill5={\n    active:true,\n    status:'OTOMATİK_AKTİF',\n    autoStarted:true,\n    recoveryReason:firstHeartbeat?'İLK_ÜRETİM_NABZI_7_GÜN':'KESİNTİ_SONRASI_OTOMATİK',\n    detectedGapHours:gapHours,\n    startedAt:now,\n    startTs,\n    endTs:now,\n    lastRunAt:now,\n    lastCandidateAt:0,\n    completedAt:0,\n    processed:Number(store.backfill5.processed||0),\n    skippedDuplicates:Number(store.backfill5.skippedDuplicates||0),\n    emptyScans:0\n  };\n\n  return [{json:{\n    run_mode:'backfill',\n    backfill_hourly:true,\n    backfill_active:true,\n    backfill_auto:true,\n    recovery_reason:store.backfill5.recoveryReason,\n    detected_gap_hours:gapHours,\n    window_start:new Date(startTs).toISOString(),\n    window_end:new Date(now).toISOString()\n  }}];\n}\n\n// Arşiv tamamlandıysa saatlik tetik çalışsa bile haber zincirine item gönderme.\nreturn [];"
+      },
+      "id": "b16c2c8c-0040-4a82-8f61-06b8bddf9264",
+      "name": "ARŞİV AKTİFSE DEVAM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5104,
+        1888
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const store=$getWorkflowStaticData('global');\nstore.publishedNews=store.publishedNews||{};\nstore.inflightNews=store.inflightNews||{};\nstore.directSeen=store.directSeen||{};\nstore.backfill5=store.backfill5||{active:false,status:'PASİF'};\n\nconst now=Date.now();\nconst keepMs=90*24*60*60*1000;\nconst lockMs=20*60*1000;\nfor(const [k,v] of Object.entries(store.publishedNews)){\n  if(!v?.publishedAt || now-Number(v.publishedAt)>keepMs)delete store.publishedNews[k];\n}\nfor(const [k,v] of Object.entries(store.inflightNews)){\n  if(!v || now-Number(v)>lockMs)delete store.inflightNews[k];\n}\nfunction clean(s=''){return String(s||'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim();}\nfunction norm(s=''){return clean(s).toLocaleLowerCase('tr-TR').normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9çğıöşü\\s]/gi,' ').replace(/\\s+/g,' ').trim();}\nfunction hash(s=''){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0).toString(16);}\nfunction canonical(u=''){\n  try{const x=new URL(String(u||''));x.hash='';x.search='';return(x.hostname.toLowerCase()+x.pathname.replace(/\\/$/,'' )).toLowerCase();}\n  catch(e){return String(u||'').trim().toLowerCase();}\n}\nfunction dateOnly(v=''){\n  const d=new Date(v);return Number.isNaN(d.getTime())?String(v||'').slice(0,10):d.toISOString().slice(0,10);\n}\nconst out=[];\nfor(const item of $input.all()){\n  const j=item?.json||{};\n  if(j.status_only===true)continue;\n  const url=String(j.official_source_url||j.source_url||j.preferred_source_url||j.link||'').trim();\n  const title=clean(j.title_main||j.title||j.image_title||'');\n  // Eksik haber kaydı görsel/yayın zincirine sokulmaz.\n  if(!url || !title)continue;\n  const source=clean(j.source_name||j.image_source||'Millî Eğitim Bakanlığı');\n  const pdate=dateOnly(j.published||j.pubDate||j.date||'');\n  const keys=[];\n  keys.push('url:'+hash(canonical(url)));\n  keys.push('src-title-date:'+hash(norm(source)+'|'+norm(title)+'|'+pdate));\n  const isDup=keys.some(k=>store.publishedNews[k]||store.inflightNews[k]);\n  if(isDup){\n    if(j.direct_seen_key)store.directSeen[j.direct_seen_key]=now;\n    if(String(j.run_mode||'')==='backfill'){\n      store.backfill5.skippedDuplicates=Number(store.backfill5.skippedDuplicates||0)+1;\n      store.backfill5.lastDuplicateAt=now;\n    }\n    continue;\n  }\n  for(const k of keys)store.inflightNews[k]=now;\n  out.push({json:{...j,_published_memory_keys:keys,_duplicate_checked:true}});\n}\nreturn out;"
+      },
+      "id": "51821da4-8e83-439c-a1b3-f971e7512844",
+      "name": "SON DUPLICATE KONTROLÜ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        880
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const store=$getWorkflowStaticData('global');\nstore.publishedNews=store.publishedNews||{};\nstore.inflightNews=store.inflightNews||{};\nstore.directSeen=store.directSeen||{};\nstore.backfill5=store.backfill5||{active:false,status:'PASİF'};\n\nlet src={};\ntry{src=$('SON DUPLICATE KONTROLÜ').first().json||{};}catch(e){src={};}\nlet telegram={};\ntry{telegram=$('TELEGRAM YAYINLA').first().json||{};}catch(e){telegram={};}\n\nconst ok=telegram?.ok===true;\nconst now=Date.now();\nconst keys=Array.isArray(src._published_memory_keys)?src._published_memory_keys:[];\n\n// Telegram API hata döndürdüyse haber YAYINLANMIŞ kabul edilmez.\n// Böylece sonraki saat tekrar denenebilir.\nif(!ok){\n  for(const k of keys)delete store.inflightNews[k];\n  store.lastTelegramPublishFailureAt=now;\n  return $input.all();\n}\n\nconst record={\n  publishedAt:now,\n  sourceDate:String(src.published||src.pubDate||src.date||''),\n  sourceName:String(src.source_name||src.image_source||''),\n  title:String(src.title_main||src.title||src.image_title||''),\n  officialUrl:String(src.official_source_url||src.source_url||src.preferred_source_url||src.link||''),\n  telegramMessageId:String(telegram?.result?.message_id||'')\n};\nfor(const k of keys){\n  store.publishedNews[k]=record;\n  delete store.inflightNews[k];\n}\nif(src.direct_seen_key)store.directSeen[src.direct_seen_key]=now;\nif(String(src.run_mode||'')==='backfill'){\n  store.backfill5.processed=Number(store.backfill5.processed||0)+1;\n  store.backfill5.lastPublishedAt=now;\n  store.backfill5.lastPublishedTitle=record.title;\n}\nstore.lastSuccessfulTelegramAt=now;\nreturn $input.all();"
+      },
+      "id": "b5e9ee29-75cd-4954-abec-12a84429fb56",
+      "name": "YAYIN HAFIZASINA KAYDET",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        432
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.official_source_url || $json.link }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "tr-TR,tr;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "raw_article"
+            }
+          },
+          "timeout": 45000
+        }
+      },
+      "id": "bf4fabd2-051a-4452-b60b-0b778a651254",
+      "name": "KAYNAK URL ÇÖZ SAYFASINI OKU",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4880,
+        2320
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originals=$('ÖN FİLTRE + TEKRAR KONTROLÜ').all();\nfunction dec(s=''){return String(s||'').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&quot;/gi,'\"').replace(/&#39;|&apos;/gi,\"'\").replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#(\\d+);/g,(_,n)=>String.fromCharCode(Number(n))).replace(/&#x([0-9a-f]+);/gi,(_,n)=>String.fromCharCode(parseInt(n,16)));}\nfunction clean(s=''){return dec(String(s||'').replace(/<script[\\s\\S]*?<\\/script>/gi,' ').replace(/<style[\\s\\S]*?<\\/style>/gi,' ').replace(/<[^>]*>/g,' ')).replace(/\\s+/g,' ').trim();}\nfunction resolve(raw='',base=''){try{return new URL(dec(raw).trim(),base).href;}catch(e){return'';}}\nfunction newsUrl(u=''){try{const x=new URL(u);return /(?:\\/haber\\/\\d+|\\/icerik\\/\\d+)(?:\\/tr)?\\/?$/i.test(x.pathname);}catch(e){return false;}}\nfunction official(u=''){try{return /(^|\\.)meb\\.gov\\.tr$/i.test(new URL(u).hostname);}catch(e){return false;}}\nfunction toks(s=''){return new Set(clean(s).toLocaleLowerCase('tr-TR').normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9çğıöşü\\s]/gi,' ').split(/\\s+/).filter(x=>x.length>=4));}\nfunction score(a='',b=''){const A=toks(a),B=toks(b);if(!A.size||!B.size)return 0;let n=0;for(const x of A)if(B.has(x))n++;return n/Math.min(A.size,B.size);}\nreturn $input.all().map((item,i)=>{const src=originals[i]?.json||{};const raw=String(item.json?.raw_article||item.json?.data||item.json?.body||'');const base=String(src.official_source_url||src.link||'');if(newsUrl(base))return {json:{...src,resolved_source_url:base,url_resolved:true}};let best='',bestScore=0;const re=/<a\\b[^>]*href\\s*=\\s*(?:\"([^\"]+)\"|'([^']+)'|([^\\s>]+))[^>]*>([\\s\\S]*?)<\\/a>/gi;let m;while((m=re.exec(raw))){const u=resolve(m[1]||m[2]||m[3]||'',base);if(!u||!official(u)||!newsUrl(u))continue;const label=clean(m[4]);const context=clean(raw.slice(Math.max(0,m.index-260),Math.min(raw.length,m.index+m[0].length+260)));const s=Math.max(score(src.title||'',label),score(src.title||'',context),score(src.summary||'',label));if(s>bestScore){bestScore=s;best=u;}}const chosen=bestScore>=0.12?best:base;return {json:{...src,resolved_source_url:chosen,official_source_url:chosen,link:chosen,url_resolved:chosen!==base,url_resolve_score:Math.round(bestScore*1000)/1000}};});"
+      },
+      "id": "893f7451-05fe-4fe1-a4eb-a8da4c9fdcf6",
+      "name": "GERÇEK HABER URLSİNİ ÇÖZ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4592,
+        2320
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.resolved_source_url || $json.official_source_url || $json.link }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "tr-TR,tr;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "raw_article"
+            }
+          },
+          "timeout": 45000
+        }
+      },
+      "id": "01559ac1-807c-400a-bce1-0d11d7deef52",
+      "name": "GERÇEK HABER SAYFASINI OKU",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3792,
+        624
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originals=$('GERÇEK HABER URLSİNİ ÇÖZ').all();\nfunction dec(s=''){return String(s||'').replace(/<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>/g,'$1').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&quot;/gi,'\"').replace(/&#39;|&apos;/gi,\"'\").replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#(\\d+);/g,(_,n)=>String.fromCharCode(Number(n))).replace(/&#x([0-9a-f]+);/gi,(_,n)=>String.fromCharCode(parseInt(n,16)));}\nfunction clean(s=''){return dec(String(s||'').replace(/<script[\\s\\S]*?<\\/script>/gi,' ').replace(/<style[\\s\\S]*?<\\/style>/gi,' ').replace(/<noscript[\\s\\S]*?<\\/noscript>/gi,' ').replace(/<[^>]*>/g,' ')).replace(/\\s+/g,' ').trim();}\nfunction attrs(tag=''){const out={};const re=/([:\\w-]+)\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))/g;let m;while((m=re.exec(tag)))out[String(m[1]||'').toLowerCase()]=dec(m[2]||m[3]||m[4]||'').trim();return out;}\nfunction resolve(raw='',base=''){try{return new URL(dec(raw).trim(),base).href;}catch(e){return'';}}\nfunction metaMap(raw=''){const out={};for(const tag of String(raw).match(/<meta\\b[^>]*>/gi)||[]){const a=attrs(tag);const key=String(a.property||a.name||'').toLowerCase();const val=String(a.content||'').trim();if(key&&val&&!out[key])out[key]=val;}return out;}\nfunction region(raw=''){const s=String(raw||'');const patterns=[/<article\\b[^>]*>[\\s\\S]*?<\\/article>/i,/<main\\b[^>]*>[\\s\\S]*?<\\/main>/i,/<div\\b[^>]*class\\s*=\\s*[\"'][^\"']*(?:article-detay|haber[-_ ]?detay|icerik|içerik|content)[^\"']*[\"'][^>]*>[\\s\\S]{0,50000}/i];for(const p of patterns){const m=s.match(p);if(m&&m[0])return m[0].slice(0,50000);}return s.slice(0,50000);}\nfunction paragraphs(html=''){const out=[];for(const m of String(html).matchAll(/<p\\b[^>]*>([\\s\\S]*?)<\\/p>/gi)){const t=clean(m[1]);if(t.length<35)continue;if(/^(adres|telefon|iletişim|©|telif|çerez)\\b/i.test(t))continue;if(!out.includes(t))out.push(t);if(out.length>=14)break;}return out;}\nfunction firstImg(html='',base=''){const imgs=String(html).match(/<img\\b[^>]*>/gi)||[];for(const tag of imgs){const a=attrs(tag);const u=resolve(a.src||a['data-src']||a['data-original']||'',base);if(!u)continue;if(/logo|icon|sprite|avatar|banner/i.test(u+' '+(a.alt||'')))continue;return u;}return '';}\nreturn $input.all().map((item,i)=>{const src=originals[i]?.json||{};const raw=String(item.json?.raw_article||item.json?.data||item.json?.body||'');if(!raw){return {json:{...src,source_content:src.source_content||src.summary||'',source_image_url:'',source_image_credit:src.source_name||'MEB',article_enriched:false}};}const base=String(src.resolved_source_url||src.official_source_url||src.link||'');const meta=metaMap(raw);const rg=region(raw);const ps=paragraphs(rg);const desc=clean(meta['og:description']||meta['twitter:description']||meta['description']||'');const full=[desc,...ps].filter(Boolean).filter((v,idx,a)=>a.indexOf(v)===idx).join(' ').slice(0,9000);let img=resolve(meta['og:image']||meta['twitter:image']||meta['twitter:image:src']||'',base);if(!img)img=firstImg(rg,base);return {json:{...src,official_source_url:base,link:base,source_content:full||src.source_content||src.summary||'',source_page_description:desc,source_image_url:img,source_image_credit:src.source_name||'MEB',source_image_found:!!img,source_content_chars:(full||'').length,article_enriched:!!full}};});"
+      },
+      "id": "079facf4-a458-4203-94d8-e8ffdcb5606e",
+      "name": "KAYNAK TAM METİN + GÖRSEL ÇIKAR",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3392,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:8787/article",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "url",
+              "value": "={{ $json.official_source_url || $json.link }}"
+            },
+            {
+              "name": "source_name",
+              "value": "={{ $json.source_name || \"MEB\" }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 45000
+        }
+      },
+      "id": "0c5befc1-81e4-4489-89cb-a18c96277cf0",
+      "name": "KAYNAK MAKALESİNİ OKU",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4352,
+        1264
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originals=$('ÖN FİLTRE + TEKRAR KONTROLÜ').all();\nreturn $input.all().map((item,i)=>{\n  const src=originals[i]?.json||{};\n  const a=item.json||{};\n  const ok=a.ok===true && String(a.source_content||'').trim().length>=120;\n  return {json:{...src,\n    official_source_url:String(a.official_source_url||src.official_source_url||src.link||''),\n    link:String(a.link||a.official_source_url||src.link||''),\n    source_content:ok?String(a.source_content||'').trim():'',\n    source_page_summary:String(a.summary||'').trim(),\n    source_image_url:String(a.source_image_url||'').trim(),\n    source_image_credit:String(a.source_image_credit||src.source_name||'MEB').trim(),\n    source_content_chars:Number(a.content_chars||0),\n    article_enriched:ok,\n    article_fetch_ok:a.ok===true\n  }};\n});"
+      },
+      "id": "2e60bd2b-c63a-4246-ac69-5ffa88133721",
+      "name": "KAYNAK MAKALESİNİ BİRLEŞTİR",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4112,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 90
+            }
+          ]
+        }
+      },
+      "id": "e833d09f-bbd0-4d47-9d9b-c7e792ea3961",
+      "name": "90 DAKİKADA BİR",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -5360,
+        1232
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.instagram.com/{{ $('CONFIG').first().json.instagram_api_version }}/{{ $('INSTAGRAM YAYINLA').first().json.id || $('INSTAGRAM YAYINLA').first().json.body?.id || $('INSTAGRAM YAYINLA').first().json.data?.id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,permalink,media_type,timestamp"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('CONFIG').first().json.instagram_access_token }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept-Encoding",
+              "value": "identity"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": false,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "1f1a5fef-d7d1-4089-ac94-4b2a3c2b2957",
+      "name": "INSTAGRAM YAYIN DOĞRULA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3616,
+        912
+      ],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 3000,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.threads.net/{{ $('CONFIG').first().json.threads_api_version }}/{{ $('THREADS YAYINLA').first().json.id || $('THREADS YAYINLA').first().json.body?.id || $('THREADS YAYINLA').first().json.data?.id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,permalink,timestamp,text"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('CONFIG').first().json.threads_access_token }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept-Encoding",
+              "value": "identity"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": false,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "34b4b274-49c2-4178-ad23-6d380c0a866f",
+      "name": "THREADS YAYIN DOĞRULA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3664,
+        1344
+      ],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 3000,
+      "onError": "stopWorkflow"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "CONFIG": {
+      "main": [
+        [
+          {
+            "node": "KAYNAKLARI ÜRET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KAYNAKLARI ÜRET": {
+      "main": [
+        [
+          {
+            "node": "RSS OKU",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS OKU": {
+      "main": [
+        [
+          {
+            "node": "ÖN FİLTRE + TEKRAR KONTROLÜ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ÖN FİLTRE + TEKRAR KONTROLÜ": {
+      "main": [
+        [
+          {
+            "node": "KAYNAK MAKALESİNİ OKU",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OPENAI TOPLU İSTEK HAZIRLA": {
+      "main": [
+        [
+          {
+            "node": "KAYNAK DOĞRULAMA + OMNIROUTE HAZIRLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI SONUÇLARI AÇ + YAYIN FİLTRESİ": {
+      "main": [
+        [
+          {
+            "node": "YAYIN ADAYI VARSA DEVAM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GÖRSEL ŞABLONU HAZIRLA": {
+      "main": [
+        [
+          {
+            "node": "ANA ŞABLONU PUBLIC YÜKLE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1080x1350 JPG BINARY OLUŞTUR": {
+      "main": [
+        [
+          {
+            "node": "GÖRSEL BINARY META EKLE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GÖRSEL BINARY META EKLE": {
+      "main": [
+        [
+          {
+            "node": "TELEGRAM CANLI FİLTRE",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FACEBOOK CANLI FİLTRE",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "CATBOX PUBLIC URL YÜKLE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TELEGRAM CANLI FİLTRE": {
+      "main": [
+        [
+          {
+            "node": "TELEGRAM YAYINLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INSTAGRAM CANLI FİLTRE": {
+      "main": [
+        [
+          {
+            "node": "INSTAGRAM CONTAINER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INSTAGRAM CONTAINER": {
+      "main": [
+        [
+          {
+            "node": "INSTAGRAM YAYINLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THREADS CANLI FİLTRE": {
+      "main": [
+        [
+          {
+            "node": "THREADS CONTAINER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THREADS CONTAINER": {
+      "main": [
+        [
+          {
+            "node": "THREADS YAYINLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FACEBOOK CANLI FİLTRE": {
+      "main": [
+        [
+          {
+            "node": "FACEBOOK YAYINLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHATGPT 1/5 - GPT-5.4-MINI": {
+      "main": [
+        [
+          {
+            "node": "MODEL 1 BAŞARILI - DEVAM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "MODEL 1 HATA - SONRAKİNE GEÇ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MODEL 1 BAŞARILI - DEVAM": {
+      "main": [
+        [
+          {
+            "node": "AI SONUÇLARI AÇ + YAYIN FİLTRESİ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MODEL 1 HATA - SONRAKİNE GEÇ": {
+      "main": [
+        [
+          {
+            "node": "CHATGPT 2/5 - GPT-5.6-LUNA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHATGPT 2/5 - GPT-5.6-LUNA": {
+      "main": [
+        [
+          {
+            "node": "MODEL 2 BAŞARILI - DEVAM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "MODEL 2 HATA - SONRAKİNE GEÇ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MODEL 2 BAŞARILI - DEVAM": {
+      "main": [
+        [
+          {
+            "node": "AI SONUÇLARI AÇ + YAYIN FİLTRESİ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MODEL 2 HATA - SONRAKİNE GEÇ": {
+      "main": [
+        [
+          {
+            "node": "CHATGPT 3/5 - GPT-5.6-SOL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHATGPT 3/5 - GPT-5.6-SOL": {
+      "main": [
+        [
+          {
+            "node": "MODEL 3 BAŞARILI - DEVAM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "MODEL 3 HATA - SONRAKİNE GEÇ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MODEL 3 BAŞARILI - DEVAM": {
+      "main": [
+        [
+          {
+            "node": "AI SONUÇLARI AÇ + YAYIN FİLTRESİ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MODEL 3 HATA - SONRAKİNE GEÇ": {
+      "main": [
+        [
+          {
+            "node": "CHATGPT 4/5 - GPT-5.6-TERRA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHATGPT 4/5 - GPT-5.6-TERRA": {
+      "main": [
+        [
+          {
+            "node": "MODEL 4 BAŞARILI - DEVAM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "MODEL 4 HATA - SONRAKİNE GEÇ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MODEL 4 BAŞARILI - DEVAM": {
+      "main": [
+        [
+          {
+            "node": "AI SONUÇLARI AÇ + YAYIN FİLTRESİ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MODEL 4 HATA - SONRAKİNE GEÇ": {
+      "main": [
+        [
+          {
+            "node": "CHATGPT 5/5 - GPT-6-ASTRA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHATGPT 5/5 - GPT-6-ASTRA": {
+      "main": [
+        [
+          {
+            "node": "MODEL 5 SONUÇ - DEVAM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MODEL 5 SONUÇ - DEVAM": {
+      "main": [
+        [
+          {
+            "node": "AI SONUÇLARI AÇ + YAYIN FİLTRESİ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KAYNAK DOĞRULAMA + OMNIROUTE HAZIRLA": {
+      "main": [
+        [
+          {
+            "node": "OMNIROUTE 1 - DOCKER HOST - PROVIDER FAILOVER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OMNIROUTE 1 - DOCKER HOST - PROVIDER FAILOVER": {
+      "main": [
+        [
+          {
+            "node": "OMNIROUTE 1 BAŞARILI - DEVAM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "OMNIROUTE 1 HATA - LOCALHOST DENE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OMNIROUTE 1 BAŞARILI - DEVAM": {
+      "main": [
+        [
+          {
+            "node": "AI SONUÇLARI AÇ + YAYIN FİLTRESİ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OMNIROUTE 1 HATA - LOCALHOST DENE": {
+      "main": [
+        [
+          {
+            "node": "OMNIROUTE 2 - LOCALHOST - PROVIDER FAILOVER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OMNIROUTE 2 - LOCALHOST - PROVIDER FAILOVER": {
+      "main": [
+        [
+          {
+            "node": "OMNIROUTE 2 BAŞARILI - DEVAM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "OMNIROUTE 2 HATA - V7 OPENAI YEDEK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OMNIROUTE 2 BAŞARILI - DEVAM": {
+      "main": [
+        [
+          {
+            "node": "AI SONUÇLARI AÇ + YAYIN FİLTRESİ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OMNIROUTE 2 HATA - V7 OPENAI YEDEK": {
+      "main": [
+        [
+          {
+            "node": "CHATGPT 1/5 - GPT-5.4-MINI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PUBLIC GÖRSEL URL EKLE": {
+      "main": [
+        [
+          {
+            "node": "PUBLIC GÖRSEL HAZIR OLSUN - 3 SN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PUBLIC GÖRSEL HAZIR OLSUN - 3 SN": {
+      "main": [
+        [
+          {
+            "node": "TEST ÇIKTISI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "INSTAGRAM CANLI FİLTRE",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "THREADS CANLI FİLTRE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CATBOX PUBLIC URL YÜKLE": {
+      "main": [
+        [
+          {
+            "node": "PUBLIC GÖRSEL URL EKLE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INSTAGRAM CONTAINER HAZIR - 5 SN": {
+      "main": [
+        [
+          {
+            "node": "INSTAGRAM YAYINLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THREADS CONTAINER HAZIR - 5 SN": {
+      "main": [
+        [
+          {
+            "node": "THREADS YAYINLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HABERLERİ ŞİMDİ BAŞLAT": {
+      "main": [
+        [
+          {
+            "node": "CONFIG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YAYIN ADAYI VARSA DEVAM": {
+      "main": [
+        [
+          {
+            "node": "SON DUPLICATE KONTROLÜ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ANA ŞABLONU PUBLIC YÜKLE": {
+      "main": [
+        [
+          {
+            "node": "ŞABLON + METİN KOORDİNATLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ŞABLON + METİN KOORDİNATLA": {
+      "main": [
+        [
+          {
+            "node": "1080x1350 JPG BINARY OLUŞTUR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5 GÜNLÜK ARŞİVİ AKTİF ET": {
+      "main": [
+        [
+          {
+            "node": "CONFIG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ARŞİV SAATLİK TETİK": {
+      "main": [
+        [
+          {
+            "node": "ARŞİV AKTİFSE DEVAM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ARŞİV AKTİFSE DEVAM": {
+      "main": [
+        [
+          {
+            "node": "CONFIG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SON DUPLICATE KONTROLÜ": {
+      "main": [
+        [
+          {
+            "node": "GÖRSEL ŞABLONU HAZIRLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TELEGRAM YAYINLA": {
+      "main": [
+        [
+          {
+            "node": "YAYIN HAFIZASINA KAYDET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KAYNAK TAM METİN + GÖRSEL ÇIKAR": {
+      "main": [
+        [
+          {
+            "node": "OPENAI TOPLU İSTEK HAZIRLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KAYNAK URL ÇÖZ SAYFASINI OKU": {
+      "main": [
+        [
+          {
+            "node": "GERÇEK HABER URLSİNİ ÇÖZ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GERÇEK HABER URLSİNİ ÇÖZ": {
+      "main": [
+        [
+          {
+            "node": "KAYNAK MAKALESİNİ OKU",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GERÇEK HABER SAYFASINI OKU": {
+      "main": [
+        [
+          {
+            "node": "KAYNAK TAM METİN + GÖRSEL ÇIKAR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KAYNAK MAKALESİNİ OKU": {
+      "main": [
+        [
+          {
+            "node": "KAYNAK MAKALESİNİ BİRLEŞTİR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KAYNAK MAKALESİNİ BİRLEŞTİR": {
+      "main": [
+        [
+          {
+            "node": "OPENAI TOPLU İSTEK HAZIRLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "90 DAKİKADA BİR": {
+      "main": [
+        [
+          {
+            "node": "CONFIG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INSTAGRAM YAYINLA": {
+      "main": [
+        [
+          {
+            "node": "INSTAGRAM YAYIN DOĞRULA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THREADS YAYINLA": {
+      "main": [
+        [
+          {
+            "node": "THREADS YAYIN DOĞRULA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "12800000-0000-4000-8000-000000000128",
+  "meta": {
+    "instanceId": "d757040adcfdce06f645f0a21192006db275fdff807077aa1613de6737c4883b"
+  },
+  "nodeGroups": [],
+  "id": "EG365CLOUDRENDERV128",
+  "tags": []
+}
