@@ -48,7 +48,13 @@ until curl -fsS http://127.0.0.1:8787/health >/dev/null 2>&1; do
   sleep 1
 done
 
-n8n import:workflow --input=/opt/workflow/EG365_CLOUD_RENDER_V128.json >/tmp/n8n-import.log 2>&1
+echo "EG365_BOOT: renderer_ready"
+echo "EG365_BOOT: importing_workflow"
+if ! timeout 120 n8n import:workflow --input=/opt/workflow/EG365_CLOUD_RENDER_V128.json; then
+  echo "EG365_BOOT_ERROR: workflow_import_failed_or_timed_out"
+  exit 1
+fi
+echo "EG365_BOOT: workflow_import_ok"
 
 if [ "${CLOUD_ACTIVATE:-false}" = "true" ]; then
   n8n update:workflow --id=EG365CLOUDRENDERV128 --active=true >/tmp/n8n-activate.log 2>&1 || {
@@ -59,4 +65,5 @@ else
   n8n update:workflow --id=EG365CLOUDRENDERV128 --active=false >/tmp/n8n-inactivate.log 2>&1 || true
 fi
 
+echo "EG365_BOOT: starting_n8n"
 exec n8n start
