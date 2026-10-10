@@ -1,8 +1,8 @@
 FROM node:22-bookworm-slim
 
 ENV N8N_VERSION=2.34.6 \
-    N8N_PORT=10000 \
-    N8N_LISTEN_ADDRESS=0.0.0.0 \
+    N8N_PORT=5678 \
+    N8N_LISTEN_ADDRESS=127.0.0.1 \
     N8N_PROTOCOL=http \
     N8N_SECURE_COOKIE=false \
     N8N_DIAGNOSTICS_ENABLED=false \
@@ -11,7 +11,7 @@ ENV N8N_VERSION=2.34.6 \
     GENERIC_TIMEZONE=Europe/Istanbul \
     TEMPLATE_PATH=/opt/renderer/template/ana-sablon.jpg \
     OUTPUT_DIR=/tmp/eg365-output \
-    PUBLIC_BASE_URL=http://127.0.0.1:8787
+    PUBLIC_BASE_URL=https://eg365-cloud.onrender.com
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       python3 python3-pip python3-venv fonts-dejavu-core tini curl ca-certificates \
