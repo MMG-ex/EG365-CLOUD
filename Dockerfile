@@ -1,1 +1,1 @@
-read_file is still running on MMG after 3s. Do not retry the original tool call. Use get_tool_result with call_id="d36d8ef8-70ca-43b9-9f7b-94d915775d93" to check it later.
+read_file is still running on MMG after 3s. Do not retry the original tool call. Use get_tool_result with call_id="579538b8-3060-4b38-a234-2f5564c532a3" to check it later.
