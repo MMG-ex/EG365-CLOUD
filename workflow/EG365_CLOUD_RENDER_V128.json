@@ -16,7 +16,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cfg=$('CONFIG').first().json;\nconst names=cfg.direct_meb_source_names||{};\nconst out=[];\nfor(const host of (cfg.direct_meb_hosts||[])){\n  const base='https://'+host+'/';\n  const sourceName=names[host]||'Millî Eğitim Bakanlığı';\n  out.push({json:{\n    fetch_url:'http://127.0.0.1:8787/discover?url='+encodeURIComponent(base)+'&source_name='+encodeURIComponent(sourceName),\n    source_host:host,source_name:sourceName,source_type:'DISCOVER',official_base:base\n  }});\n}\nreturn out;"
+        "jsCode": "const cfg=$('CONFIG').first().json;\nconst names=cfg.direct_meb_source_names||{};\nconst out=[];\nfor(const host of (cfg.direct_meb_hosts||[])){\n  const base='https://'+host+'/';\n  const sourceName=names[host]||'Millî Eğitim Bakanlığı';\n  out.push({json:{\n    fetch_url:'http://127.0.0.1:10000/discover?url='+encodeURIComponent(base)+'&source_name='+encodeURIComponent(sourceName),\n    source_host:host,source_name:sourceName,source_type:'DISCOVER',official_base:base\n  }});\n}\nreturn out;"
       },
       "id": "a0d82c87-144e-47a9-ba52-2c1f7ab084b5",
       "name": "KAYNAKLARI ÜRET",
@@ -132,7 +132,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:8787/render",
+        "url": "http://127.0.0.1:10000/render",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -1156,7 +1156,7 @@
     },
     {
       "parameters": {
-        "url": "http://127.0.0.1:8787/health",
+        "url": "http://127.0.0.1:10000/health",
         "options": {
           "response": {
             "response": {
@@ -1385,7 +1385,7 @@
     },
     {
       "parameters": {
-        "url": "http://127.0.0.1:8787/article",
+        "url": "http://127.0.0.1:10000/article",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
