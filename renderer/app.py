@@ -483,3 +483,43 @@ def article(url:str,source_name:str=""):
     source_content=" ".join(paras).strip()
     pub,ts=_parse_date(_tag_text(region[:5000]))
     return {"ok":True,"title":_tag_text(title),"summary":_tag_text(desc),"source_content":source_content[:9000],"source_image_url":img,"source_image_credit":source_name or "MEB","official_source_url":url,"link":url,"published":pub,"ts":ts,"source_name":source_name or "Millî Eğitim Bakanlığı","content_chars":len(source_content)}
+
+# -------- Encrypted n8n state backup for ephemeral cloud filesystems --------
+@app.get("/")
+def root_health():
+    return health()
+
+@app.get("/eg365-state-backup")
+def eg365_state_backup():
+    from pathlib import Path
+    import sqlite3, tempfile
+    from cryptography.fernet import Fernet
+
+    key=os.environ.get("STATE_BACKUP_KEY","").strip()
+    db_path=os.environ.get("N8N_DB_PATH","/home/node/.n8n/database.sqlite")
+    if not key:
+        raise HTTPException(503,"STATE_BACKUP_KEY not configured")
+    if not os.path.exists(db_path):
+        raise HTTPException(404,"n8n state database not ready")
+
+    fd,tmp=tempfile.mkstemp(prefix="eg365-state-",suffix=".sqlite")
+    os.close(fd)
+    try:
+        src=sqlite3.connect("file:"+db_path+"?mode=ro",uri=True,timeout=30)
+        dst=sqlite3.connect(tmp,timeout=30)
+        try:
+            src.backup(dst)
+            dst.commit()
+        finally:
+            dst.close()
+            src.close()
+        raw=Path(tmp).read_bytes()
+        encrypted=Fernet(key.encode("utf-8")).encrypt(raw)
+        return Response(
+            encrypted,
+            media_type="application/octet-stream",
+            headers={"Cache-Control":"no-store","X-EG365-State":"encrypted"}
+        )
+    finally:
+        try: os.unlink(tmp)
+        except OSError: pass
