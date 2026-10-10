@@ -14,15 +14,20 @@ p=Path('/opt/workflow/EG365_CLOUD_RENDER_V128.json')
 s=p.read_text(encoding='utf-8')
 keys=[
 'OPENAI_API_KEY','TELEGRAM_BOT_TOKEN','TELEGRAM_CHAT_ID','TELEGRAM_PUBLIC_URL',
-'INSTAGRAM_USER_ID','INSTAGRAM_ACCESS_TOKEN','THREADS_USER_ID','THREADS_ACCESS_TOKEN',
+'INSTAGRAM_USER_ID','INSTAGRAM_ACCESS_TOKEN','THREADS_ACCESS_TOKEN',
 'FACEBOOK_PAGE_ID','FACEBOOK_PAGE_ACCESS_TOKEN'
 ]
+activate=os.environ.get('CLOUD_ACTIVATE','false').lower()=='true'
+missing=[]
 for k in keys:
     ph='__'+k+'__'
     val=os.environ.get(k,'')
-    if not val:
-        raise SystemExit('Missing required env: '+k)
-    s=s.replace(ph,val)
+    if val:
+        s=s.replace(ph,val)
+    elif activate:
+        missing.append(k)
+if missing:
+    raise SystemExit('Missing required env for activation: '+','.join(missing))
 p.write_text(s,encoding='utf-8')
 PY
 
@@ -44,6 +49,14 @@ until curl -fsS http://127.0.0.1:8787/health >/dev/null 2>&1; do
 done
 
 n8n import:workflow --input=/opt/workflow/EG365_CLOUD_RENDER_V128.json >/tmp/n8n-import.log 2>&1
-n8n update:workflow --id=EG365CLOUDRENDERV128 --active=true >/tmp/n8n-activate.log 2>&1 || true
+
+if [ "${CLOUD_ACTIVATE:-false}" = "true" ]; then
+  n8n update:workflow --id=EG365CLOUDRENDERV128 --active=true >/tmp/n8n-activate.log 2>&1 || {
+    cat /tmp/n8n-activate.log
+    exit 1
+  }
+else
+  n8n update:workflow --id=EG365CLOUDRENDERV128 --active=false >/tmp/n8n-inactivate.log 2>&1 || true
+fi
 
 exec n8n start
