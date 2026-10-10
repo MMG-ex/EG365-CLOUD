@@ -107,11 +107,12 @@ fi
 echo "EG365_BOOT: workflow_import_ok"
 
 if [ "${CLOUD_ACTIVATE:-false}" = "true" ]; then
-  echo "EG365_BOOT: activating_workflow"
-  if ! n8n update:workflow --id=EG365CLOUDRENDERV128 --active=true; then
-    echo "EG365_BOOT_ERROR: activation_failed"
+  echo "EG365_BOOT: publishing_workflow"
+  if ! timeout 120 n8n publish:workflow --id=EG365CLOUDRENDERV128; then
+    echo "EG365_BOOT_ERROR: publish_failed_or_timed_out"
     exit 1
   fi
+  echo "EG365_BOOT: workflow_publish_ok"
 else
   echo "EG365_BOOT: workflow_stays_inactive"
 fi
@@ -136,6 +137,19 @@ until curl -fsS "http://127.0.0.1:$N8N_PORT/healthz" >/dev/null 2>&1; do
   sleep 1
 done
 echo "EG365_BOOT: n8n_ready"
+/opt/venv/bin/python - <<'PY' || true
+import os,sqlite3
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+try:
+    con=sqlite3.connect(db,timeout=20)
+    row=con.execute("SELECT id,name,active FROM workflow_entity WHERE id=?",("EG365CLOUDRENDERV128",)).fetchone()
+    print("EG365_VERIFY: workflow_row="+repr(row))
+    count=con.execute("SELECT COUNT(*) FROM execution_entity").fetchone()[0]
+    print("EG365_VERIFY: execution_count="+str(count))
+    con.close()
+except Exception as e:
+    print("EG365_VERIFY_WARNING: "+str(e))
+PY
 echo "EG365_BOOT: cloud_ready"
 
 wait "$NPID"
