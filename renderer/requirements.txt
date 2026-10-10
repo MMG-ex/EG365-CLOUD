@@ -1,1 +1,4 @@
-read_file is still running on MMG after 3s. Do not retry the original tool call. Use get_tool_result with call_id="66892963-ece5-4b63-b9c3-34c12fe3aa93" to check it later.
+fastapi==0.128.2
+uvicorn[standard]==0.48.0
+pillow==12.3.0
+python-multipart==0.0.20
