@@ -13,7 +13,10 @@ jobs:
         shell: bash
         run: |
           set -e
-          code=$(curl -sS -o /tmp/resp.json -w "%{http_code}" --connect-timeout 15 --max-time 90             -X POST "https://text.pollinations.ai/openai"             -H "Content-Type: application/json"             -d '{"model":"openai","messages":[{"role":"user","content":"Return only this JSON: {"ok":true,"provider":"pollinations"}"}],"temperature":0}')
+          cat >/tmp/request.json <<'JSON'
+          {"model":"openai","messages":[{"role":"user","content":"Reply exactly OK"}],"temperature":0}
+          JSON
+          code=$(curl -sS -o /tmp/resp.json -w "%{http_code}" --connect-timeout 15 --max-time 90             -X POST "https://text.pollinations.ai/openai"             -H "Content-Type: application/json"             --data-binary @/tmp/request.json)
           echo "HTTP=$code"
           cat /tmp/resp.json
           test "$code" = "200"
