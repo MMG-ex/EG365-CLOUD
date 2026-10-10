@@ -331,7 +331,7 @@ def _fetch_remote(url:str):
     raw=b""; enc=None; last=None
     try:
         import requests
-        rr=requests.get(url,headers=headers,timeout=25,verify=False,allow_redirects=True)
+        rr=requests.get(url,headers=headers,timeout=(5,10),verify=False,allow_redirects=True)
         rr.raise_for_status()
         raw=rr.content; enc=rr.encoding
     except Exception as e:
@@ -341,7 +341,7 @@ def _fetch_remote(url:str):
             ctx=ssl.create_default_context()
             ctx.check_hostname=False; ctx.verify_mode=ssl.CERT_NONE
             req=urllib.request.Request(url,headers=headers)
-            with urllib.request.urlopen(req,timeout=25,context=ctx) as r:
+            with urllib.request.urlopen(req,timeout=10,context=ctx) as r:
                 raw=r.read(); enc=r.headers.get_content_charset()
         except Exception as e2:
             raise e2 from last
@@ -386,7 +386,7 @@ def _allowed_news_url(url:str):
 def discover(url:str,source_name:str=""):
     import time
     raw=None; last=None
-    for attempt in range(3):
+    for attempt in range(1):
         try:
             raw=_fetch_remote(url)
             break
@@ -415,13 +415,8 @@ def discover(url:str,source_name:str=""):
         v.pop("_rank",None)
         if v.get("title"): out.append(v)
     out.sort(key=lambda x:x.get("ts",0),reverse=True)
-    for v in out[:5]:
-        try:
-            full=article(v.get("link",""),source_name or v.get("source_name",""))
-            if full.get("ok"):
-                v.update({k:full.get(k) for k in ["source_content","source_image_url","source_image_credit","published","ts"] if full.get(k)})
-                if full.get("summary"): v["summary"]=full["summary"]
-        except Exception: pass
+    # Cloud optimization: article details are fetched later by the V128 article stage.
+    # Keeping discovery link-only avoids N x article requests and n8n's 45s request timeout.
     return {"ok":True,"url":url,"count":len(out),"items":out[:40]}
 
 @app.get("/article")
@@ -430,7 +425,7 @@ def article(url:str,source_name:str=""):
     if not _allowed_news_url(url): raise HTTPException(status_code=400,detail="Only official MEB article URLs are allowed")
     import time
     raw=None; last=None
-    for attempt in range(3):
+    for attempt in range(1):
         try:
             raw=_fetch_remote(url)
             break
