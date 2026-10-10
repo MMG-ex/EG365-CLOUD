@@ -726,14 +726,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.openai.com/v1/responses",
+        "url": "https://text.pollinations.ai/openai",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $('CONFIG').first().json.openai_api_key }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -742,7 +738,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify(Object.assign({}, $('OPENAI TOPLU İSTEK HAZIRLA').first().json.openai_body, { model: 'gpt-6-astra' })) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'openai', messages: [{ role: 'user', content: $('OPENAI TOPLU İSTEK HAZIRLA').first().json.openai_body.input }], temperature: 0.15 }) }}",
         "options": {
           "response": {
             "response": {
@@ -750,7 +746,7 @@
               "responseFormat": "json"
             }
           },
-          "timeout": 20000
+          "timeout": 60000
         }
       },
       "id": "519894ac-a1b0-4a61-8e98-28d504fe9aaf",
@@ -817,7 +813,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [{json:{...r,_router_model:'gpt-6-astra',_router_attempt:5,_semantic_valid:true}}];\nreturn [{json:{error:r.error||{message:'MODEL_5_SEMANTIC_INVALID'},_router_model:'gpt-6-astra',_router_attempt:5,_semantic_failover:true}}];"
+        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [{json:{...r,_router_model:'pollinations-free',_router_attempt:5,_semantic_valid:true}}];\nreturn [{json:{error:r.error||{message:'MODEL_5_SEMANTIC_INVALID'},_router_model:'pollinations-free',_router_attempt:5,_semantic_failover:true}}];"
       },
       "id": "cbbb0250-e61c-4a52-9e4c-a49410a2b037",
       "name": "MODEL 5 SONUÇ - DEVAM",
