@@ -71,16 +71,31 @@ keys=[
 'FACEBOOK_PAGE_ID','FACEBOOK_PAGE_ACCESS_TOKEN'
 ]
 activate=os.environ.get('CLOUD_ACTIVATE','false').lower()=='true'
+stored={}
+db_path=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+try:
+    import sqlite3
+    if os.path.exists(db_path):
+        con=sqlite3.connect(db_path,timeout=20)
+        try:
+            con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+            stored=dict(con.execute("SELECT k,v FROM eg365_secrets").fetchall())
+        finally:
+            con.close()
+except Exception as e:
+    print('EG365_BOOT: secret_store_read_warning='+str(e))
 missing=[]
 for k in keys:
     ph='__'+k+'__'
     val=os.environ.get(k,'')
-    if val and val != 'PENDING':
+    if not val or val == 'PENDING':
+        val=stored.get(k,'')
+    if val:
         s=s.replace(ph,val)
     elif activate:
         missing.append(k)
 if missing:
-    raise SystemExit('Missing required env for activation: '+','.join(missing))
+    raise SystemExit('Missing required secrets for activation: '+','.join(missing))
 p.write_text(s,encoding='utf-8')
 PY
 
