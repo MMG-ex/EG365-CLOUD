@@ -1,0 +1,20 @@
+name: EG365 Free AI Probe
+on:
+  push:
+    branches: [state]
+permissions:
+  contents: read
+jobs:
+  probe:
+    if: contains(github.event.head_commit.message, 'free-ai-probe')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe Pollinations legacy OpenAI endpoint
+        shell: bash
+        run: |
+          set -e
+          code=$(curl -sS -o /tmp/resp.json -w "%{http_code}" --connect-timeout 15 --max-time 90             -X POST "https://text.pollinations.ai/openai"             -H "Content-Type: application/json"             -d '{"model":"openai","messages":[{"role":"user","content":"Return only this JSON: {"ok":true,"provider":"pollinations"}"}],"temperature":0}')
+          echo "HTTP=$code"
+          cat /tmp/resp.json
+          test "$code" = "200"
+          grep -q '"choices"' /tmp/resp.json
