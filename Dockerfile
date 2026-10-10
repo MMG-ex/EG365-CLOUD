@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       python3 python3-pip python3-venv fonts-dejavu-core tini curl ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
     && npm install -g n8n@2.34.6 \
-    && mkdir -p /opt/renderer/template /opt/workflow /tmp/eg365-output /home/node/.n8n
+    && mkdir -p /opt/renderer/template /opt/workflow /tmp/eg365-output /root/.n8n
 
 COPY renderer/requirements.txt /opt/renderer/requirements.txt
 RUN python3 -m venv /opt/venv \
