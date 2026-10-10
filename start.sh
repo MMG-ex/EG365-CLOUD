@@ -6,7 +6,7 @@ export N8N_PORT="${N8N_PORT:-5678}"
 export N8N_LISTEN_ADDRESS="${N8N_LISTEN_ADDRESS:-127.0.0.1}"
 export N8N_PROTOCOL="http"
 
-mkdir -p /home/node/.n8n /tmp/eg365-output
+mkdir -p /root/.n8n /tmp/eg365-output
 
 echo "EG365_BOOT: starting_public_renderer"
 exec_renderer() {
@@ -42,7 +42,7 @@ from pathlib import Path
 import os
 from cryptography.fernet import Fernet
 src=Path('/tmp/eg365-state.fernet')
-dst=Path('/home/node/.n8n/database.sqlite')
+dst=Path('/root/.n8n/database.sqlite')
 key=os.environ['STATE_BACKUP_KEY'].encode()
 raw=Fernet(key).decrypt(src.read_bytes())
 dst.write_bytes(raw)
