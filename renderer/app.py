@@ -496,7 +496,7 @@ def eg365_state_backup():
     from cryptography.fernet import Fernet
 
     key=os.environ.get("STATE_BACKUP_KEY","").strip()
-    db_path=os.environ.get("N8N_DB_PATH","/home/node/.n8n/database.sqlite")
+    db_path=os.environ.get("N8N_DB_PATH","/root/.n8n/database.sqlite")
     if not key:
         raise HTTPException(503,"STATE_BACKUP_KEY not configured")
     if not os.path.exists(db_path):
