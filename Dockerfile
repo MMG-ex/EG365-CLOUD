@@ -24,7 +24,8 @@ RUN python3 -m venv /opt/venv \
     && /opt/venv/bin/pip install --no-cache-dir -r /opt/renderer/requirements.txt
 
 COPY renderer/app.py /opt/renderer/app.py
-COPY renderer/template/ana-sablon.jpg.b64 /tmp/ana-sablon.jpg.b64\nRUN base64 -d /tmp/ana-sablon.jpg.b64 > /opt/renderer/template/ana-sablon.jpg && rm /tmp/ana-sablon.jpg.b64
+COPY renderer/template/ana-sablon.jpg.b64 /tmp/ana-sablon.jpg.b64
+RUN base64 -d /tmp/ana-sablon.jpg.b64 > /opt/renderer/template/ana-sablon.jpg && rm /tmp/ana-sablon.jpg.b64
 COPY workflow/EG365_CLOUD_RENDER_V128.json /opt/workflow/EG365_CLOUD_RENDER_V128.json
 COPY start.sh /opt/start.sh
 RUN chmod +x /opt/start.sh
