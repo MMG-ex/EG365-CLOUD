@@ -113,8 +113,7 @@ if [ "${CLOUD_ACTIVATE:-false}" = "true" ]; then
     exit 1
   fi
 else
-  echo "EG365_BOOT: keeping_workflow_inactive"
-  n8n update:workflow --id=EG365CLOUDRENDERV128 --active=false >/dev/null 2>&1 || true
+  echo "EG365_BOOT: workflow_stays_inactive"
 fi
 
 echo "EG365_BOOT: starting_n8n_internal"
