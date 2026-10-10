@@ -523,3 +523,75 @@ def eg365_state_backup():
     finally:
         try: os.unlink(tmp)
         except OSError: pass
+
+
+# -------- One-time bootstrap: import runtime secrets from the verified V128 JSON --------
+@app.get("/bootstrap/{token}")
+def eg365_bootstrap_page(token:str):
+    import html
+    expected=os.environ.get("BOOTSTRAP_TOKEN","")
+    if not expected or token != expected:
+        raise HTTPException(404,"Not found")
+    page="""<!doctype html><html><head><meta charset="utf-8"><title>EG365 CLOUD Bootstrap</title>
+<style>body{font-family:system-ui;max-width:720px;margin:60px auto;padding:24px;background:#071c3d;color:white}
+.card{background:#0d3268;padding:28px;border-radius:18px}input,button{font-size:16px;margin-top:16px}
+button{padding:12px 18px;background:#e60023;color:white;border:0;border-radius:10px}</style></head>
+<body><div class="card"><h1>EG365 CLOUD</h1><p>Çalışan V128 JSON dosyanı seç. Dosya sunucuda public olarak saklanmaz; yalnız gerekli anahtarlar n8n state veritabanına alınır.</p>
+<form method="post" enctype="multipart/form-data"><input type="file" name="file" accept=".json,application/json" required><br>
+<button type="submit">V128'i Cloud'a Aktar</button></form></div></body></html>"""
+    return Response(page,media_type="text/html")
+
+@app.post("/bootstrap/{token}")
+async def eg365_bootstrap_import(token:str,file:UploadFile=File(...)):
+    import json, sqlite3
+    expected=os.environ.get("BOOTSTRAP_TOKEN","")
+    if not expected or token != expected:
+        raise HTTPException(404,"Not found")
+    raw=await file.read()
+    if not raw:
+        raise HTTPException(400,"Empty file")
+    try:
+        obj=json.loads(raw.decode("utf-8-sig"))
+    except Exception as e:
+        raise HTTPException(400,"Invalid JSON")
+    if isinstance(obj,list):
+        if not obj: raise HTTPException(400,"Empty workflow list")
+        obj=obj[0]
+    nodes=obj.get("nodes") or []
+    cfg=next((n for n in nodes if n.get("name")=="CONFIG"),None)
+    if not cfg:
+        raise HTTPException(400,"CONFIG node not found")
+    code=((cfg.get("parameters") or {}).get("jsCode") or "")
+    mapping={
+      "OPENAI_API_KEY":"openai_api_key",
+      "TELEGRAM_BOT_TOKEN":"telegram_bot_token",
+      "TELEGRAM_CHAT_ID":"telegram_chat_id",
+      "TELEGRAM_PUBLIC_URL":"telegram_public_url",
+      "INSTAGRAM_USER_ID":"instagram_user_id",
+      "INSTAGRAM_ACCESS_TOKEN":"instagram_access_token",
+      "THREADS_ACCESS_TOKEN":"threads_access_token",
+      "FACEBOOK_PAGE_ID":"facebook_page_id",
+      "FACEBOOK_PAGE_ACCESS_TOKEN":"facebook_page_access_token",
+    }
+    values={}
+    for env_key,cfg_key in mapping.items():
+        m=re.search(r"\\b"+re.escape(cfg_key)+r"\\s*:\\s*'([^']*)'",code)
+        if m and m.group(1).strip():
+            values[env_key]=m.group(1).strip()
+    missing=[k for k in mapping if not values.get(k)]
+    if missing:
+        raise HTTPException(400,"Missing required V128 values: "+",".join(missing))
+    db_path=os.environ.get("N8N_DB_PATH","/root/.n8n/database.sqlite")
+    os.makedirs(os.path.dirname(db_path),exist_ok=True)
+    con=sqlite3.connect(db_path,timeout=30)
+    try:
+        con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+        for k,v in values.items():
+            con.execute("INSERT INTO eg365_secrets(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(k,v))
+        con.execute("CREATE TABLE IF NOT EXISTS eg365_meta (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+        con.execute("INSERT INTO eg365_meta(k,v) VALUES('bootstrap_done','1') ON CONFLICT(k) DO UPDATE SET v='1'")
+        con.commit()
+    finally:
+        con.close()
+    return Response("""<!doctype html><html><body style="font-family:system-ui;background:#071c3d;color:white;padding:50px">
+<h1>EG365 CLOUD</h1><h2>V128 anahtarları güvenli şekilde alındı.</h2><p>Bu pencereyi kapatabilirsin.</p></body></html>""",media_type="text/html")
