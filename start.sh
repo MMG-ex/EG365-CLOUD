@@ -133,6 +133,12 @@ PY
     echo "EG365_SMOKE_ERROR: import_failed"
     exit 1
   fi
+  echo "EG365_SMOKE: executing_dry_run"
+  if ! timeout 420 n8n execute --id="$SMOKE_ID"; then
+    echo "EG365_SMOKE_ERROR: dry_run_execution_failed_or_timed_out"
+    exit 1
+  fi
+  echo "EG365_SMOKE: dry_run_execution_ok"
   if ! timeout 120 n8n publish:workflow --id="$SMOKE_ID"; then
     echo "EG365_SMOKE_ERROR: publish_failed"
     exit 1
