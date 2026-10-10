@@ -1,1 +1,6 @@
-read_file is still running on MMG after 3s. Do not retry the original tool call. Use get_tool_result with call_id="b9e03e31-2e89-4490-9982-53acfd5557d0" to check it later.
+.git
+.gitignore
+*.log
+__pycache__/
+*.pyc
+sanitize_workflow.py
