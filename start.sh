@@ -18,6 +18,7 @@ RPID=$!
 cleanup() {
   kill "$RPID" 2>/dev/null || true
   [ -n "${NPID:-}" ] && kill "$NPID" 2>/dev/null || true
+  [ -n "${MPID:-}" ] && kill "$MPID" 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
@@ -106,6 +107,52 @@ if ! timeout 120 n8n import:workflow --input=/opt/workflow/EG365_CLOUD_RENDER_V1
 fi
 echo "EG365_BOOT: workflow_import_ok"
 
+SMOKE_ID="EG365CLOUDSMOKEV128"
+if [ "${CLOUD_SMOKE_TEST:-false}" = "true" ]; then
+  echo "EG365_SMOKE: preparing_dry_run_workflow"
+  /opt/venv/bin/python - <<'PY'
+from pathlib import Path
+import json
+src=Path('/opt/workflow/EG365_CLOUD_RENDER_V128.json')
+dst=Path('/tmp/EG365_CLOUD_SMOKE_V128.json')
+w=json.loads(src.read_text(encoding='utf-8'))
+w['id']='EG365CLOUDSMOKEV128'
+w['name']='EG365 CLOUD V128 - SMOKE DRY RUN'
+w['active']=False
+w['versionId']='12800000-0000-4000-8000-000000009999'
+for n in w.get('nodes',[]):
+    if n.get('name')=='CONFIG':
+        code=((n.get('parameters') or {}).get('jsCode') or '')
+        code=code.replace('dry_run: false','dry_run: true')
+        n['parameters']['jsCode']=code
+    if n.get('name')=='90 DAKİKADA BİR':
+        n['parameters']={'rule':{'interval':[{'field':'minutes','minutesInterval':1}]}}
+dst.write_text(json.dumps(w,ensure_ascii=False,indent=2),encoding='utf-8')
+PY
+  if ! timeout 120 n8n import:workflow --input=/tmp/EG365_CLOUD_SMOKE_V128.json; then
+    echo "EG365_SMOKE_ERROR: import_failed"
+    exit 1
+  fi
+  if ! timeout 120 n8n publish:workflow --id="$SMOKE_ID"; then
+    echo "EG365_SMOKE_ERROR: publish_failed"
+    exit 1
+  fi
+  echo "EG365_SMOKE: published"
+else
+  /opt/venv/bin/python - <<'PY' || true
+import os,sqlite3
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+if os.path.exists(db):
+    con=sqlite3.connect(db,timeout=20)
+    try:
+        con.execute("UPDATE workflow_entity SET active=0 WHERE id='EG365CLOUDSMOKEV128'")
+        con.commit()
+        print("EG365_SMOKE: inactive")
+    finally:
+        con.close()
+PY
+fi
+
 if [ "${CLOUD_ACTIVATE:-false}" = "true" ]; then
   echo "EG365_BOOT: publishing_workflow"
   if ! timeout 120 n8n publish:workflow --id=EG365CLOUDRENDERV128; then
@@ -151,5 +198,29 @@ except Exception as e:
     print("EG365_VERIFY_WARNING: "+str(e))
 PY
 echo "EG365_BOOT: cloud_ready"
+
+(
+  while true; do
+    sleep 30
+    /opt/venv/bin/python - <<'PY' || true
+import os,sqlite3
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+try:
+    con=sqlite3.connect(db,timeout=10)
+    for wid,label in [('EG365CLOUDRENDERV128','prod'),('EG365CLOUDSMOKEV128','smoke')]:
+        row=con.execute("SELECT id,name,active FROM workflow_entity WHERE id=?",(wid,)).fetchone()
+        try:
+            cnt=con.execute("SELECT COUNT(*) FROM execution_entity WHERE workflowId=?",(wid,)).fetchone()[0]
+            latest=con.execute("SELECT id,status,startedAt,stoppedAt FROM execution_entity WHERE workflowId=? ORDER BY id DESC LIMIT 1",(wid,)).fetchone()
+        except Exception:
+            cnt=-1; latest=None
+        print(f"EG365_MONITOR: {label}_workflow={row} executions={cnt} latest={latest}",flush=True)
+    con.close()
+except Exception as e:
+    print("EG365_MONITOR_WARNING: "+str(e),flush=True)
+PY
+  done
+) &
+MPID=$!
 
 wait "$NPID"
