@@ -1,6 +1,8 @@
 name: EG365 Cloud Keepalive and State Backup
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch:
@@ -14,6 +16,7 @@ concurrency:
 
 jobs:
   backup:
+    if: github.event_name != 'push' || contains(github.event.head_commit.message, 'state-probe')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout state branch
@@ -22,18 +25,30 @@ jobs:
           ref: state
           fetch-depth: 1
 
-      - name: Wake service and download encrypted n8n state
+      - name: Wake and verify cloud
         shell: bash
         run: |
+          set -e
+          for i in 1 2 3 4 5 6; do
+            if curl -fsSL --connect-timeout 20 --max-time 150               "https://eg365-cloud.onrender.com/health"               -o /tmp/health.json; then
+              cat /tmp/health.json
+              exit 0
+            fi
+            sleep 15
+          done
+          exit 1
+
+      - name: Download encrypted n8n state
+        shell: bash
+        run: |
+          set -e
           mkdir -p state
-          for i in 1 2 3 4; do
-            if curl -fsSL --connect-timeout 20 --max-time 150 \
-              "https://eg365-cloud.onrender.com/eg365-state-backup" \
-              -o state/n8n.sqlite.fernet; then
+          for i in 1 2 3 4 5 6; do
+            if curl -fsSL --connect-timeout 20 --max-time 150               "https://eg365-cloud.onrender.com/eg365-state-backup"               -o state/n8n.sqlite.fernet; then
               test -s state/n8n.sqlite.fernet
               exit 0
             fi
-            sleep 20
+            sleep 15
           done
           exit 1
 
@@ -46,6 +61,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "State unchanged"
           else
-            git commit -m "state: encrypted n8n backup [skip render]"
+            git commit -m "state: encrypted n8n backup"
             git push origin state
           fi
