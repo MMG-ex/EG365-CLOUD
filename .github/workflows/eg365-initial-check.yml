@@ -1,0 +1,34 @@
+name: EG365 Initial Cloud State Check
+
+on:
+  push:
+    branches: [state]
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-backup:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: state
+      - name: Verify public cloud health
+        run: |
+          set -e
+          curl -fsSL --retry 6 --retry-delay 15 --connect-timeout 20 --max-time 180 https://eg365-cloud.onrender.com/health
+      - name: Download encrypted n8n state
+        run: |
+          set -e
+          mkdir -p state
+          curl -fsSL --retry 6 --retry-delay 15 --connect-timeout 20 --max-time 180             https://eg365-cloud.onrender.com/eg365-state-backup             -o state/n8n.sqlite.fernet
+          test -s state/n8n.sqlite.fernet
+      - name: Commit encrypted state
+        run: |
+          git config user.name "EG365 Cloud State Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add state/n8n.sqlite.fernet
+          git commit -m "state: initial encrypted cloud backup" || exit 0
+          git push origin state
