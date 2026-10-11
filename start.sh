@@ -91,6 +91,74 @@ finally:
 PY
 fi
 
+# Persist a valid Page token supplied by the cloud environment into encrypted state.
+# Optional cloud-only probe creates an UNPUBLISHED Page photo, then deletes it.
+if [ "${EG365_FACEBOOK_PROBE:-false}" = "true" ] || { [ -n "${FACEBOOK_PAGE_ACCESS_TOKEN:-}" ] && [ "${FACEBOOK_PAGE_ACCESS_TOKEN:-}" != "PENDING" ]; }; then
+  /opt/venv/bin/python - <<'PY' || true
+import os,sqlite3,json,urllib.request,urllib.parse,urllib.error,uuid
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+con=sqlite3.connect(db,timeout=20)
+try:
+    con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+    vals=dict(con.execute("SELECT k,v FROM eg365_secrets").fetchall())
+    page_token=(os.environ.get('FACEBOOK_PAGE_ACCESS_TOKEN') or vals.get('FACEBOOK_PAGE_ACCESS_TOKEN') or '').strip()
+    page_id=(os.environ.get('FACEBOOK_PAGE_ID') or vals.get('FACEBOOK_PAGE_ID') or '').strip()
+    if page_token and page_token!='PENDING':
+        con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(page_token,))
+        con.commit()
+        print("EG365_FB_TOKEN_SYNC: ok",flush=True)
+    if os.environ.get('EG365_FACEBOOK_PROBE','false').lower()=='true':
+        if not page_token or page_token=='PENDING' or not page_id or page_id=='PENDING':
+            print("EG365_FB_PROBE: skipped_missing_credentials",flush=True)
+        else:
+            img='/opt/renderer/template/ana-sablon.jpg'
+            boundary='----EG365'+uuid.uuid4().hex
+            def field(name,value):
+                return (f'--{boundary}\\r\\nContent-Disposition: form-data; name="{name}"\\r\\n\\r\\n{value}\\r\\n').encode()
+            body=b''.join([
+                field('published','false'),
+                field('caption','EG365 CLOUD bağlantı doğrulama testi'),
+                field('access_token',page_token),
+                (f'--{boundary}\\r\\nContent-Disposition: form-data; name="source"; filename="eg365-test.jpg"\\r\\nContent-Type: image/jpeg\\r\\n\\r\\n').encode(),
+                open(img,'rb').read(),b'\\r\\n',
+                (f'--{boundary}--\\r\\n').encode()
+            ])
+            req=urllib.request.Request(
+                f'https://graph.facebook.com/v24.0/{page_id}/photos',
+                data=body,method='POST',
+                headers={'Content-Type':f'multipart/form-data; boundary={boundary}','User-Agent':'EG365-Cloud/1.0'}
+            )
+            try:
+                with urllib.request.urlopen(req,timeout=45) as r:
+                    obj=json.loads(r.read().decode('utf-8','replace'))
+                pid=str(obj.get('id') or '')
+                if pid:
+                    print("EG365_FB_PROBE: create_ok unpublished=true id="+pid[:48],flush=True)
+                    q=urllib.parse.urlencode({'access_token':page_token}).encode()
+                    dreq=urllib.request.Request(f'https://graph.facebook.com/v24.0/{pid}',data=q,method='DELETE',headers={'User-Agent':'EG365-Cloud/1.0'})
+                    try:
+                        with urllib.request.urlopen(dreq,timeout=30) as dr:
+                            dobj=json.loads(dr.read().decode('utf-8','replace'))
+                        print("EG365_FB_PROBE: delete_ok="+str(bool(dobj.get('success'))).lower(),flush=True)
+                    except Exception:
+                        print("EG365_FB_PROBE: delete_warning",flush=True)
+                else:
+                    print("EG365_FB_PROBE: create_no_id",flush=True)
+            except urllib.error.HTTPError as e:
+                code='';msg=''
+                try:
+                    er=json.loads(e.read().decode('utf-8','replace')).get('error') or {}
+                    code=str(er.get('code') or '')
+                    msg=str(er.get('message') or '')[:180]
+                except Exception: pass
+                print("EG365_FB_PROBE: graph_error code="+code+" message="+msg,flush=True)
+            except Exception as e:
+                print("EG365_FB_PROBE: request_failed "+str(e)[:180],flush=True)
+finally:
+    con.close()
+PY
+fi
+
 # Inject runtime secrets only inside the ephemeral container.
 python3 - <<'PY'
 from pathlib import Path
