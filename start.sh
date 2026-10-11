@@ -8,31 +8,16 @@ export N8N_PROTOCOL="http"
 
 mkdir -p /root/.n8n /tmp/eg365-output
 
-echo "EG365_BOOT: starting_public_renderer"
-exec_renderer() {
-  /opt/venv/bin/uvicorn app:app --app-dir /opt/renderer --host 0.0.0.0 --port "$PUBLIC_PORT"
-}
-/opt/venv/bin/uvicorn app:app --app-dir /opt/renderer --host 0.0.0.0 --port "$PUBLIC_PORT" >/tmp/renderer.log 2>&1 &
-RPID=$!
+RPID=""
+NPID=""
+MPID=""
 
 cleanup() {
-  kill "$RPID" 2>/dev/null || true
+  [ -n "${RPID:-}" ] && kill "$RPID" 2>/dev/null || true
   [ -n "${NPID:-}" ] && kill "$NPID" 2>/dev/null || true
   [ -n "${MPID:-}" ] && kill "$MPID" 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
-
-i=0
-until curl -fsS "http://127.0.0.1:$PUBLIC_PORT/health" >/dev/null 2>&1; do
-  i=$((i+1))
-  if [ "$i" -gt 40 ]; then
-    echo "EG365_BOOT_ERROR: renderer_failed"
-    cat /tmp/renderer.log || true
-    exit 1
-  fi
-  sleep 1
-done
-echo "EG365_BOOT: renderer_ready"
 
 # Restore encrypted SQLite state when a previous cloud backup exists.
 if [ -n "${STATE_BACKUP_URL:-}" ] && [ -n "${STATE_BACKUP_KEY:-}" ]; then
@@ -100,12 +85,52 @@ if missing:
 p.write_text(s,encoding='utf-8')
 PY
 
-echo "EG365_BOOT: importing_workflow"
-if ! timeout 120 n8n import:workflow --input=/opt/workflow/EG365_CLOUD_RENDER_V128.json; then
-  echo "EG365_BOOT_ERROR: workflow_import_failed_or_timed_out"
-  exit 1
+WF_SHA="$(sha256sum /opt/workflow/EG365_CLOUD_RENDER_V128.json | awk '{print $1}')"
+export WF_SHA
+NEED_IMPORT="$(/opt/venv/bin/python - <<'PY'
+import os,sqlite3
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+sha=os.environ.get('WF_SHA','')
+need='1'
+if os.path.exists(db):
+    con=sqlite3.connect(db,timeout=20)
+    try:
+        con.execute("CREATE TABLE IF NOT EXISTS eg365_meta (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+        row=con.execute("SELECT v FROM eg365_meta WHERE k='workflow_sha'").fetchone()
+        wf=con.execute("SELECT id FROM workflow_entity WHERE id='EG365CLOUDRENDERV128'").fetchone()
+        if row and row[0]==sha and wf:
+            need='0'
+    except Exception:
+        need='1'
+    finally:
+        con.close()
+print(need)
+PY
+)"
+export WF_SHA
+if [ "$NEED_IMPORT" = "1" ]; then
+  echo "EG365_BOOT: importing_workflow"
+  if ! timeout 150 n8n import:workflow --input=/opt/workflow/EG365_CLOUD_RENDER_V128.json >/tmp/n8n-import.log 2>&1; then
+    echo "EG365_BOOT_ERROR: workflow_import_failed_or_timed_out"
+    tail -80 /tmp/n8n-import.log | sed -E 's/(token|api[_ -]?key|authorization)[^ ]*/[REDACTED]/Ig' || true
+    exit 1
+  fi
+  /opt/venv/bin/python - <<'PY'
+import os,sqlite3
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+sha=os.environ.get('WF_SHA','')
+con=sqlite3.connect(db,timeout=20)
+try:
+    con.execute("CREATE TABLE IF NOT EXISTS eg365_meta (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+    con.execute("INSERT INTO eg365_meta(k,v) VALUES('workflow_sha',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(sha,))
+    con.commit()
+finally:
+    con.close()
+PY
+  echo "EG365_BOOT: workflow_import_ok"
+else
+  echo "EG365_BOOT: workflow_import_skipped_same_revision"
 fi
-echo "EG365_BOOT: workflow_import_ok"
 
 SMOKE_ID="EG365CLOUDSMOKEV128"
 if [ "${CLOUD_SMOKE_TEST:-false}" = "true" ]; then
@@ -134,7 +159,7 @@ PY
     exit 1
   fi
   echo "EG365_SMOKE: executing_dry_run"
-  if ! timeout 420 n8n execute --id="$SMOKE_ID"; then
+  if ! timeout 420 n8n execute --id="$SMOKE_ID" >/tmp/eg365-smoke.log 2>&1; then
     echo "EG365_SMOKE_ERROR: dry_run_execution_failed_or_timed_out"
     exit 1
   fi
@@ -169,6 +194,26 @@ if [ "${CLOUD_ACTIVATE:-false}" = "true" ]; then
 else
   echo "EG365_BOOT: workflow_stays_inactive"
 fi
+
+echo "EG365_BOOT: starting_public_renderer"
+/opt/venv/bin/uvicorn app:app --app-dir /opt/renderer --host 0.0.0.0 --port "$PUBLIC_PORT" >/tmp/renderer.log 2>&1 &
+RPID=$!
+i=0
+until curl -fsS "http://127.0.0.1:$PUBLIC_PORT/health" >/dev/null 2>&1; do
+  i=$((i+1))
+  if ! kill -0 "$RPID" 2>/dev/null; then
+    echo "EG365_BOOT_ERROR: renderer_exited"
+    tail -80 /tmp/renderer.log || true
+    exit 1
+  fi
+  if [ "$i" -gt 40 ]; then
+    echo "EG365_BOOT_ERROR: renderer_health_timeout"
+    tail -80 /tmp/renderer.log || true
+    exit 1
+  fi
+  sleep 1
+done
+echo "EG365_BOOT: renderer_ready"
 
 echo "EG365_BOOT: starting_n8n_internal"
 n8n start >/tmp/n8n.log 2>&1 &
