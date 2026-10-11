@@ -565,6 +565,7 @@ async def eg365_bootstrap_import(token:str,file:UploadFile=File(...)):
       "INSTAGRAM_USER_ID":"instagram_user_id",
       "INSTAGRAM_ACCESS_TOKEN":"instagram_access_token",
       "THREADS_ACCESS_TOKEN":"threads_access_token",
+      "FACEBOOK_USER_ACCESS_TOKEN":"facebook_user_access_token",
       "FACEBOOK_PAGE_ID":"facebook_page_id",
       "FACEBOOK_PAGE_ACCESS_TOKEN":"facebook_page_access_token",
     }
@@ -573,7 +574,8 @@ async def eg365_bootstrap_import(token:str,file:UploadFile=File(...)):
         m=re.search(r"\\b"+re.escape(cfg_key)+r"\\s*:\\s*'([^']*)'",code)
         if m and m.group(1).strip():
             values[env_key]=m.group(1).strip()
-    missing=[k for k in mapping if not values.get(k)]
+    required=[k for k in mapping if k!="FACEBOOK_USER_ACCESS_TOKEN"]
+    missing=[k for k in required if not values.get(k)]
     if missing:
         raise HTTPException(400,"Missing required V128 values: "+",".join(missing))
     db_path=os.environ.get("N8N_DB_PATH","/root/.n8n/database.sqlite")
