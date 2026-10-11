@@ -156,10 +156,24 @@ for n in w.get('nodes',[]):
         n['parameters']={'rule':{'interval':[{'field':'minutes','minutesInterval':1}]}}
 dst.write_text(json.dumps(w,ensure_ascii=False,indent=2),encoding='utf-8')
 PY
-  if ! timeout 120 n8n import:workflow --input=/tmp/EG365_CLOUD_SMOKE_V128.json; then
+  if ! timeout 120 n8n import:workflow --input=/tmp/EG365_CLOUD_SMOKE_V128.json >/tmp/eg365-smoke-import.log 2>&1; then
     echo "EG365_SMOKE_ERROR: import_failed"
     exit 1
   fi
+  /opt/venv/bin/python - <<'PY'
+import os,sqlite3
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+con=sqlite3.connect(db,timeout=20)
+try:
+    cols=[r[1] for r in con.execute("PRAGMA table_info(workflow_entity)").fetchall()]
+    if 'staticData' in cols:
+        con.execute("UPDATE workflow_entity SET staticData=NULL WHERE id='EG365CLOUDSMOKEV128'")
+    con.execute("UPDATE workflow_entity SET active=0 WHERE id='EG365CLOUDSMOKEV128'")
+    con.commit()
+    print("EG365_SMOKE: static_state_cleared")
+finally:
+    con.close()
+PY
   echo "EG365_SMOKE: executing_dry_run"
   if ! timeout 420 n8n execute --id="$SMOKE_ID" >/tmp/eg365-smoke.log 2>&1; then
     echo "EG365_SMOKE_ERROR: dry_run_execution_failed_or_timed_out"
