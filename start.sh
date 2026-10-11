@@ -69,10 +69,17 @@ try:
             with urllib.request.urlopen(req,timeout=30) as r:
                 obj=json.loads(r.read().decode('utf-8','replace'))
             match=next((x for x in (obj.get('data') or []) if str(x.get('id') or '')==page_id and x.get('access_token')),None)
+            if not match:
+                pages=obj.get('data') or []
+                # Fallback by page name when Meta returned a changed Page ID.
+                match=next((x for x in pages if x.get('access_token') and any(t in str(x.get('name') or '').lower() for t in ('eğitim gündem 365','egitim gundem 365','egitimgundem365'))),None)
+                safe=[{'id':str(x.get('id') or ''),'name':str(x.get('name') or '')[:80],'tasks':x.get('tasks') or []} for x in pages[:20]]
+                print("EG365_FB_TOKEN_REPAIR: accounts="+json.dumps(safe,ensure_ascii=False),flush=True)
             if match:
                 con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(str(match['access_token']),))
+                con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ID',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(str(match.get('id') or page_id),))
                 con.commit()
-                print("EG365_FB_TOKEN_REPAIR: success",flush=True)
+                print("EG365_FB_TOKEN_REPAIR: success page_id="+str(match.get('id') or page_id),flush=True)
             else:
                 print("EG365_FB_TOKEN_REPAIR: page_not_found_in_accounts",flush=True)
         except urllib.error.HTTPError as e:
@@ -180,9 +187,12 @@ except Exception as e:
 missing=[]
 for k in keys:
     ph='__'+k+'__'
-    val=os.environ.get(k,'')
-    if not val or val == 'PENDING':
+    if k in ('FACEBOOK_PAGE_ID','FACEBOOK_PAGE_ACCESS_TOKEN') and stored.get(k):
         val=stored.get(k,'')
+    else:
+        val=os.environ.get(k,'')
+        if not val or val == 'PENDING':
+            val=stored.get(k,'')
     if val:
         s=s.replace(ph,val)
     elif activate:
