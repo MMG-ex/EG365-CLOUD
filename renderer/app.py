@@ -644,3 +644,88 @@ def eg365_fb_diag():
     if err: out["errors"].append(err)
     elif target: out["target"]={"id":str(target.get("id") or ""),"name":str(target.get("name") or "")[:80]}
     return out
+
+
+@app.get("/fb-probe-page")
+def eg365_fb_probe_page():
+    import json, urllib.parse, urllib.request, urllib.error, sqlite3
+    db_path=os.environ.get("N8N_DB_PATH","/root/.n8n/database.sqlite")
+    stored={}
+    if os.path.exists(db_path):
+        con=sqlite3.connect(db_path,timeout=10)
+        try:
+            con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+            stored=dict(con.execute("SELECT k,v FROM eg365_secrets").fetchall())
+        finally:
+            con.close()
+
+    seed=(os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN") or stored.get("FACEBOOK_PAGE_ACCESS_TOKEN") or "").strip()
+    wanted=(stored.get("FACEBOOK_PAGE_ID") or os.environ.get("FACEBOOK_PAGE_ID") or "").strip()
+    if not seed or seed=="PENDING":
+        return {"pass":False,"stage":"missing_seed"}
+
+    def api_get(path,params):
+        q=urllib.parse.urlencode(params)
+        req=urllib.request.Request("https://graph.facebook.com/v24.0/"+path+"?"+q,headers={"User-Agent":"EG365-Cloud/1.0"})
+        with urllib.request.urlopen(req,timeout=25) as r:
+            return json.loads(r.read().decode("utf-8","replace"))
+
+    try:
+        acc=api_get("me/accounts",{"fields":"id,name,access_token","limit":"100","access_token":seed})
+        pages=acc.get("data") or []
+        page=next((x for x in pages if str(x.get("id") or "")==wanted and x.get("access_token")),None)
+        if not page:
+            page=next((x for x in pages if x.get("access_token") and "365" in str(x.get("name") or "")),None)
+        if not page:
+            return {"pass":False,"stage":"page_not_found","pages":[{"id":str(x.get("id") or ""),"name":str(x.get("name") or "")[:80]} for x in pages[:20]]}
+
+        page_id=str(page.get("id") or "")
+        page_token=str(page.get("access_token") or "")
+        data=urllib.parse.urlencode({
+            "message":"EG365 CLOUD Facebook bağlantı doğrulama testi",
+            "published":"false",
+            "access_token":page_token
+        }).encode()
+        req=urllib.request.Request(
+            "https://graph.facebook.com/v24.0/"+page_id+"/feed",
+            data=data,method="POST",
+            headers={"User-Agent":"EG365-Cloud/1.0"}
+        )
+        with urllib.request.urlopen(req,timeout=30) as r:
+            created=json.loads(r.read().decode("utf-8","replace"))
+        post_id=str(created.get("id") or "")
+        if not post_id:
+            return {"pass":False,"stage":"create_no_id","page_id":page_id}
+
+        deleted=False
+        try:
+            dd=urllib.parse.urlencode({"access_token":page_token}).encode()
+            dr=urllib.request.Request(
+                "https://graph.facebook.com/v24.0/"+post_id,
+                data=dd,method="DELETE",
+                headers={"User-Agent":"EG365-Cloud/1.0"}
+            )
+            with urllib.request.urlopen(dr,timeout=25) as r:
+                dobj=json.loads(r.read().decode("utf-8","replace"))
+            deleted=bool(dobj.get("success"))
+        except Exception:
+            deleted=False
+
+        con=sqlite3.connect(db_path,timeout=10)
+        try:
+            con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+            con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ID',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(page_id,))
+            con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(page_token,))
+            con.commit()
+        finally:
+            con.close()
+
+        return {"pass":True,"stage":"write_ok","page_id":page_id,"post_id":post_id,"deleted":deleted}
+    except urllib.error.HTTPError as e:
+        try:
+            er=(json.loads(e.read().decode("utf-8","replace")).get("error") or {})
+            return {"pass":False,"stage":"graph_error","code":er.get("code"),"message":str(er.get("message") or "")[:180]}
+        except Exception:
+            return {"pass":False,"stage":"http_error","code":e.code}
+    except Exception as e:
+        return {"pass":False,"stage":"exception","message":str(e)[:180]}
