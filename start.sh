@@ -47,6 +47,50 @@ PY
   fi
 fi
 
+# Auto-repair the Facebook Page token from the still-valid Meta/Instagram user token.
+# This keeps credentials out of GitHub and fixes Graph error 190 without touching the local V128.
+if [ "${EG365_REFRESH_FACEBOOK_TOKEN:-true}" = "true" ]; then
+  /opt/venv/bin/python - <<'PY' || true
+import os,sqlite3,json,urllib.parse,urllib.request,urllib.error
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+con=sqlite3.connect(db,timeout=20)
+try:
+    con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+    vals=dict(con.execute("SELECT k,v FROM eg365_secrets").fetchall())
+    user_token=(vals.get('INSTAGRAM_ACCESS_TOKEN') or os.environ.get('INSTAGRAM_ACCESS_TOKEN') or '').strip()
+    page_id=(vals.get('FACEBOOK_PAGE_ID') or os.environ.get('FACEBOOK_PAGE_ID') or '').strip()
+    if not user_token or user_token=='PENDING' or not page_id or page_id=='PENDING':
+        print("EG365_FB_TOKEN_REPAIR: skipped_missing_source",flush=True)
+    else:
+        base='https://graph.facebook.com/v24.0/me/accounts'
+        qs=urllib.parse.urlencode({'fields':'id,name,access_token','limit':'100','access_token':user_token})
+        req=urllib.request.Request(base+'?'+qs,headers={'User-Agent':'EG365-Cloud/1.0'})
+        try:
+            with urllib.request.urlopen(req,timeout=30) as r:
+                obj=json.loads(r.read().decode('utf-8','replace'))
+            match=next((x for x in (obj.get('data') or []) if str(x.get('id') or '')==page_id and x.get('access_token')),None)
+            if match:
+                con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(str(match['access_token']),))
+                con.commit()
+                print("EG365_FB_TOKEN_REPAIR: success",flush=True)
+            else:
+                print("EG365_FB_TOKEN_REPAIR: page_not_found_in_accounts",flush=True)
+        except urllib.error.HTTPError as e:
+            msg=''
+            code=''
+            try:
+                er=json.loads(e.read().decode('utf-8','replace')).get('error') or {}
+                code=str(er.get('code') or '')
+                msg=str(er.get('message') or '')[:160]
+            except Exception: pass
+            print("EG365_FB_TOKEN_REPAIR: graph_error code="+code+" message="+msg,flush=True)
+        except Exception as e:
+            print("EG365_FB_TOKEN_REPAIR: request_failed "+str(e)[:160],flush=True)
+finally:
+    con.close()
+PY
+fi
+
 # Inject runtime secrets only inside the ephemeral container.
 python3 - <<'PY'
 from pathlib import Path
