@@ -319,6 +319,129 @@ done
 echo "EG365_BOOT: renderer_ready"
 echo "EG365_BOOT: cloud_ready"
 
+audit_last_prod() {
+  /opt/venv/bin/python - <<'PY' || true
+import os,sqlite3,json,re
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+wid='EG365CLOUDRENDERV128'
+con=sqlite3.connect(db,timeout=20)
+try:
+    row=con.execute("SELECT id,status,startedAt,stoppedAt FROM execution_entity WHERE workflowId=? ORDER BY id DESC LIMIT 1",(wid,)).fetchone()
+    if not row:
+        print("EG365_AUDIT: no_execution",flush=True); raise SystemExit
+    drow=con.execute("SELECT data FROM execution_data WHERE executionId=?",(row[0],)).fetchone()
+    if not drow or not drow[0]:
+        print("EG365_AUDIT: no_execution_data id="+str(row[0]),flush=True); raise SystemExit
+    raw=json.loads(drow[0])
+    if isinstance(raw,list):
+        arr=raw; memo={}
+        def top(i):
+            if i in memo:return memo[i]
+            if i<0 or i>=len(arr):return None
+            x=arr[i]
+            if isinstance(x,str):return x
+            if isinstance(x,dict):
+                out={}; memo[i]=out
+                for k,v in x.items():out[k]=nested(v)
+                return out
+            if isinstance(x,list):
+                out=[]; memo[i]=out
+                out.extend(nested(v) for v in x); return out
+            return x
+        def nested(v):
+            if isinstance(v,str) and re.fullmatch(r'\d+',v):
+                n=int(v)
+                if 0<=n<len(arr):return top(n)
+            if isinstance(v,dict):return {k:nested(x) for k,x in v.items()}
+            if isinstance(v,list):return [nested(x) for x in v]
+            return v
+        root=top(0)
+    else:
+        root=raw
+    run=((root or {}).get('resultData') or {}).get('runData') or {}
+    def last_json(name):
+        runs=run.get(name) or []
+        for rr in reversed(runs):
+            mains=((rr or {}).get('data') or {}).get('main') or []
+            for branch in reversed(mains):
+                if not branch: continue
+                for item in reversed(branch):
+                    if isinstance(item,dict) and isinstance(item.get('json'),dict):
+                        return item['json']
+        return None
+    def has_error(x):
+        if isinstance(x,dict):
+            for k,v in x.items():
+                if str(k).lower() in ('error','errors') and v not in (None,'',False,[],{}): return True
+                if has_error(v): return True
+        elif isinstance(x,list):
+            return any(has_error(v) for v in x)
+        return False
+    def first_id(x):
+        if isinstance(x,dict):
+            for k in ('message_id','post_id','creation_id','id'):
+                v=x.get(k)
+                if isinstance(v,(str,int)) and str(v): return str(v)[:48]
+            for v in x.values():
+                z=first_id(v)
+                if z:return z
+        elif isinstance(x,list):
+            for v in x:
+                z=first_id(v)
+                if z:return z
+        return ''
+    def channel(name):
+        x=last_json(name)
+        if x is None:return {'ran':False,'success':False}
+        ident=first_id(x)
+        explicit=x.get('ok') is True if isinstance(x,dict) else False
+        data_ok=isinstance(x,dict) and isinstance(x.get('data'),list) and len(x.get('data'))>0
+        success=(not has_error(x)) and (explicit or bool(ident) or data_ok)
+        return {'ran':True,'success':bool(success),'id':ident}
+    cand=last_json('AI SONUÇLARI AÇ + YAYIN FİLTRESİ') or {}
+    cat=last_json('CATBOX PUBLIC URL YÜKLE') or {}
+    caturl=''
+    if isinstance(cat,dict):
+        for k in ('public_image_url','image_url','url'):
+            v=cat.get(k)
+            if isinstance(v,str) and v.startswith('http'):caturl=v;break
+    audit={
+      'execution_id':row[0],'status':row[1],
+      'candidate':{
+        'status_only':cand.get('status_only'),
+        'content_quality_pass':cand.get('content_quality_pass'),
+        'ai_status':str(cand.get('ai_status') or '')[:60],
+        'ai_model_used':str(cand.get('ai_model_used') or '')[:60],
+        'publish_telegram':cand.get('publish_telegram'),
+        'publish_instagram':cand.get('publish_instagram'),
+        'publish_threads':cand.get('publish_threads'),
+        'publish_facebook':cand.get('publish_facebook'),
+        'title':str(cand.get('title') or '')[:140]
+      },
+      'catbox':{'ran':bool(cat),'success':bool(caturl),'host':('files.catbox.moe' if 'files.catbox.moe' in caturl else '')},
+      'telegram':channel('TELEGRAM YAYINLA'),
+      'instagram_create':channel('INSTAGRAM CONTAINER'),
+      'instagram_publish':channel('INSTAGRAM YAYINLA'),
+      'instagram_verify':channel('INSTAGRAM YAYIN DOĞRULA'),
+      'threads_create':channel('THREADS CONTAINER'),
+      'threads_publish':channel('THREADS YAYINLA'),
+      'threads_verify':channel('THREADS YAYIN DOĞRULA'),
+      'facebook':channel('FACEBOOK YAYINLA'),
+      'memory':{'ran':last_json('YAYIN HAFIZASINA KAYDET') is not None}
+    }
+    print("EG365_AUDIT: "+json.dumps(audit,ensure_ascii=False),flush=True)
+except SystemExit:
+    pass
+except Exception as e:
+    print("EG365_AUDIT_WARNING: "+str(e),flush=True)
+finally:
+    con.close()
+PY
+}
+
+# Audit the restored state before the next run. This confirms the previous cloud run without republishing it.
+audit_last_prod
+
 run_prod() {
   echo "EG365_PROD: execution_start"
   if timeout 480 n8n execute --id=EG365CLOUDRENDERV128 >/tmp/eg365-prod.log 2>&1; then
@@ -364,6 +487,7 @@ except Exception as e:
 finally:
     con.close()
 PY
+  audit_last_prod
 }
 
 # First cloud production pass immediately after a successful boot.
