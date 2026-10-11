@@ -1,0 +1,53 @@
+name: EG365 State Probe
+
+on:
+  push:
+    branches: [state]
+    paths:
+      - ".github/EG365_STATE_PROBE"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: eg365-state-probe
+  cancel-in-progress: true
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout state branch
+        uses: actions/checkout@v4
+        with:
+          ref: state
+          fetch-depth: 1
+
+      - name: Download encrypted n8n state
+        shell: bash
+        run: |
+          set -e
+          mkdir -p state
+          for i in 1 2 3 4 5 6; do
+            if curl -fsSL --connect-timeout 20 --max-time 150 \
+              "https://eg365-cloud.onrender.com/eg365-state-backup" \
+              -o state/n8n.sqlite.fernet; then
+              test -s state/n8n.sqlite.fernet
+              exit 0
+            fi
+            sleep 15
+          done
+          exit 1
+
+      - name: Persist encrypted state
+        shell: bash
+        run: |
+          git config user.name "EG365 Cloud State Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add state/n8n.sqlite.fernet
+          if git diff --cached --quiet; then
+            echo "State unchanged"
+          else
+            git commit -m "state: encrypted n8n backup"
+            git push origin state
+          fi
