@@ -646,7 +646,11 @@ fi
 (
   while true; do
     sleep 5400
-    run_prod || true
+    if [ "${CLOUD_ACTIVATE:-false}" = "true" ]; then
+      run_prod || true
+    else
+      echo "EG365_PROD: skipped_cloud_inactive"
+    fi
   done
 ) &
 MPID=$!
