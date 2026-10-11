@@ -585,6 +585,7 @@ async def eg365_bootstrap_import(token:str,file:UploadFile=File(...)):
             con.execute("INSERT INTO eg365_secrets(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(k,v))
         con.execute("CREATE TABLE IF NOT EXISTS eg365_meta (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
         con.execute("INSERT INTO eg365_meta(k,v) VALUES('bootstrap_done','1') ON CONFLICT(k) DO UPDATE SET v='1'")
+        con.execute("DELETE FROM eg365_meta WHERE k='workflow_sha'")
         con.commit()
     finally:
         con.close()
