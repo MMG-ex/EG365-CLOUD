@@ -571,9 +571,13 @@ async def eg365_bootstrap_import(token:str,file:UploadFile=File(...)):
     }
     values={}
     for env_key,cfg_key in mapping.items():
-        m=re.search(r"\b"+re.escape(cfg_key)+r"\s*:\s*([\\"'\x60])(.+?)\1",code)
-        if m and m.group(2).strip():
-            values[env_key]=m.group(2).strip()
+        line=next((ln.strip() for ln in code.splitlines() if ln.strip().startswith(cfg_key+":")), "")
+        if line:
+            rhs=line.split(":",1)[1].strip().rstrip(",").strip()
+            if len(rhs)>=2 and rhs[0] in (chr(34),chr(39),chr(96)) and rhs[-1]==rhs[0]:
+                val=rhs[1:-1].strip()
+                if val:
+                    values[env_key]=val
     required=[k for k in mapping if k!="FACEBOOK_USER_ACCESS_TOKEN"]
     missing=[k for k in required if not values.get(k)]
     if missing:
