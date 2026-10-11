@@ -154,6 +154,17 @@ for n in w.get('nodes',[]):
         n['parameters']['jsCode']=code
     if n.get('name')=='90 DAKİKADA BİR':
         n['parameters']={'rule':{'interval':[{'field':'minutes','minutesInterval':1}]}}
+    if n.get('name')=='ÖN FİLTRE + TEKRAR KONTROLÜ':
+        n['parameters']['jsCode']="""return [{json:{
+  title:'MEB RESMÎ HABER DOĞRULAMA TESTİ',
+  link:'https://www.meb.gov.tr/bakan-tekin-haberimiz-olsun-bulteninde-ogrencilerin-sorularini-yanitladi/haber/42086/tr',
+  official_source_url:'https://www.meb.gov.tr/bakan-tekin-haberimiz-olsun-bulteninde-ogrencilerin-sorularini-yanitladi/haber/42086/tr',
+  published:'2026-10-04T12:11:00',
+  summary:'Millî Eğitim Bakanlığının resmî haber sayfası cloud zincirinin doğrulanması amacıyla kuru test girdisi olarak kullanılmaktadır.',
+  source_name:'Millî Eğitim Bakanlığı',source_host:'www.meb.gov.tr',source_type:'SMOKE_OFFICIAL',
+  verified:true,meb_relevant:true,direct_seen_key:'eg365-cloud-smoke-42086',
+  ts:Date.now(),article_enriched:false,article_fetch_ok:false,item_id:0,run_mode:'normal'
+}}];"""
 dst.write_text(json.dumps(w,ensure_ascii=False,indent=2),encoding='utf-8')
 PY
   if ! timeout 120 n8n import:workflow --input=/tmp/EG365_CLOUD_SMOKE_V128.json >/tmp/eg365-smoke-import.log 2>&1; then
