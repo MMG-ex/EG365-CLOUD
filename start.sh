@@ -57,7 +57,7 @@ con=sqlite3.connect(db,timeout=20)
 try:
     con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
     vals=dict(con.execute("SELECT k,v FROM eg365_secrets").fetchall())
-    user_token=(vals.get('FACEBOOK_USER_ACCESS_TOKEN') or os.environ.get('FACEBOOK_USER_ACCESS_TOKEN') or vals.get('INSTAGRAM_ACCESS_TOKEN') or os.environ.get('INSTAGRAM_ACCESS_TOKEN') or '').strip()
+    user_token=(vals.get('FACEBOOK_USER_ACCESS_TOKEN') or os.environ.get('FACEBOOK_USER_ACCESS_TOKEN') or os.environ.get('FACEBOOK_PAGE_ACCESS_TOKEN') or vals.get('FACEBOOK_PAGE_ACCESS_TOKEN') or vals.get('INSTAGRAM_ACCESS_TOKEN') or os.environ.get('INSTAGRAM_ACCESS_TOKEN') or '').strip()
     page_id=(vals.get('FACEBOOK_PAGE_ID') or os.environ.get('FACEBOOK_PAGE_ID') or '').strip()
     if not user_token or user_token=='PENDING' or not page_id or page_id=='PENDING':
         print("EG365_FB_TOKEN_REPAIR: skipped_missing_source",flush=True)
