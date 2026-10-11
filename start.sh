@@ -57,7 +57,7 @@ con=sqlite3.connect(db,timeout=20)
 try:
     con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
     vals=dict(con.execute("SELECT k,v FROM eg365_secrets").fetchall())
-    user_token=(vals.get('INSTAGRAM_ACCESS_TOKEN') or os.environ.get('INSTAGRAM_ACCESS_TOKEN') or '').strip()
+    user_token=(vals.get('FACEBOOK_USER_ACCESS_TOKEN') or os.environ.get('FACEBOOK_USER_ACCESS_TOKEN') or vals.get('INSTAGRAM_ACCESS_TOKEN') or os.environ.get('INSTAGRAM_ACCESS_TOKEN') or '').strip()
     page_id=(vals.get('FACEBOOK_PAGE_ID') or os.environ.get('FACEBOOK_PAGE_ID') or '').strip()
     if not user_token or user_token=='PENDING' or not page_id or page_id=='PENDING':
         print("EG365_FB_TOKEN_REPAIR: skipped_missing_source",flush=True)
@@ -100,7 +100,7 @@ s=p.read_text(encoding='utf-8')
 keys=[
 'OPENAI_API_KEY','TELEGRAM_BOT_TOKEN','TELEGRAM_CHAT_ID','TELEGRAM_PUBLIC_URL',
 'INSTAGRAM_USER_ID','INSTAGRAM_ACCESS_TOKEN','THREADS_ACCESS_TOKEN',
-'FACEBOOK_PAGE_ID','FACEBOOK_PAGE_ACCESS_TOKEN'
+'FACEBOOK_USER_ACCESS_TOKEN','FACEBOOK_PAGE_ID','FACEBOOK_PAGE_ACCESS_TOKEN'
 ]
 activate=os.environ.get('CLOUD_ACTIVATE','false').lower()=='true'
 stored={}
@@ -492,7 +492,7 @@ try:
         'publish_facebook':cand.get('publish_facebook'),
         'title':str(cand.get('title') or '')[:140]
       },
-      'catbox':{'ran':bool(cat),'success':bool(caturl),'host':('files.catbox.moe' if 'files.catbox.moe' in caturl else ''),'status_code':status_code(cat),'error':safe_error(cat).get('message','')},
+      'catbox':{'ran':bool(cat),'success':bool(caturl) or (200<=status_code(cat)<300 and not has_error(cat)),'host':('files.catbox.moe' if 'files.catbox.moe' in caturl else ''),'status_code':status_code(cat),'error':safe_error(cat).get('message','')},
       'telegram':channel('TELEGRAM YAYINLA'),
       'instagram_create':channel('INSTAGRAM CONTAINER'),
       'instagram_publish':channel('INSTAGRAM YAYINLA'),
