@@ -166,6 +166,56 @@ PY
     exit 1
   fi
   echo "EG365_SMOKE: dry_run_execution_ok"
+  if ! /opt/venv/bin/python - <<'PY'
+import os,sqlite3,json,sys
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+wid='EG365CLOUDSMOKEV128'
+con=sqlite3.connect(db,timeout=20)
+try:
+    row=con.execute("SELECT id,status FROM execution_entity WHERE workflowId=? ORDER BY id DESC LIMIT 1",(wid,)).fetchone()
+    if not row:
+        print("EG365_SMOKE_VERIFY: no_execution")
+        sys.exit(2)
+    eid,status=row
+    drow=con.execute("SELECT data FROM execution_data WHERE executionId=?",(eid,)).fetchone()
+    obj={}
+    if drow and drow[0]:
+        try: obj=json.loads(drow[0])
+        except Exception: obj={}
+    found=[]
+    def walk(x):
+        if isinstance(x,dict):
+            if 'status_only' in x or 'content_quality_pass' in x or 'ai_status' in x:
+                found.append(x)
+            for v in x.values(): walk(v)
+        elif isinstance(x,list):
+            for v in x: walk(v)
+    walk(obj)
+    candidate=None
+    for x in reversed(found):
+        if x.get('status_only') is False and (x.get('content_quality_pass') is True or x.get('publish_telegram') is True):
+            candidate=x; break
+    if status!='success':
+        print(f"EG365_SMOKE_VERIFY: execution_status={status}")
+        sys.exit(3)
+    if not candidate:
+        last=found[-1] if found else {}
+        print("EG365_SMOKE_VERIFY: no_publishable_candidate ai_status="+str(last.get('ai_status',''))+" durum="+str(last.get('DURUM',''))[:160])
+        sys.exit(4)
+    print("EG365_SMOKE_VERIFY: PASS ai_status="+str(candidate.get('ai_status',''))+
+          " model="+str(candidate.get('ai_model_used',''))+
+          " editorial="+str(candidate.get('content_quality_pass',False))+
+          " publish_tg="+str(candidate.get('publish_telegram',False))+
+          " publish_ig="+str(candidate.get('publish_instagram',False))+
+          " publish_th="+str(candidate.get('publish_threads',False))+
+          " publish_fb="+str(candidate.get('publish_facebook',False)))
+finally:
+    con.close()
+PY
+  then
+    echo "EG365_SMOKE_ERROR: semantic_verification_failed"
+    exit 1
+  fi
   if ! timeout 120 n8n publish:workflow --id="$SMOKE_ID"; then
     echo "EG365_SMOKE_ERROR: publish_failed"
     exit 1
