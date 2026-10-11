@@ -597,3 +597,50 @@ async def eg365_bootstrap_import(token:str,file:UploadFile=File(...)):
         con.close()
     return Response("""<!doctype html><html><body style="font-family:system-ui;background:#071c3d;color:white;padding:50px">
 <h1>EG365 CLOUD</h1><h2>V128 anahtarları güvenli şekilde alındı.</h2><p>Bu pencereyi kapatabilirsin.</p></body></html>""",media_type="text/html")
+
+
+@app.get("/fb-diag")
+def eg365_fb_diag():
+    import json, urllib.parse, urllib.request, urllib.error, sqlite3
+    db_path=os.environ.get("N8N_DB_PATH","/root/.n8n/database.sqlite")
+    stored={}
+    try:
+        if os.path.exists(db_path):
+            con=sqlite3.connect(db_path,timeout=10)
+            try:
+                con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+                stored=dict(con.execute("SELECT k,v FROM eg365_secrets").fetchall())
+            finally:
+                con.close()
+    except Exception:
+        pass
+    token=(os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN") or stored.get("FACEBOOK_PAGE_ACCESS_TOKEN") or "").strip()
+    page_id=(os.environ.get("FACEBOOK_PAGE_ID") or stored.get("FACEBOOK_PAGE_ID") or "").strip()
+    out={"configured":bool(token and token!="PENDING"),"configured_page_id":page_id,"me":None,"pages":[],"errors":[]}
+    if not out["configured"]:
+        return out
+    def call(path,fields):
+        q=urllib.parse.urlencode({"fields":fields,"access_token":token})
+        req=urllib.request.Request("https://graph.facebook.com/v24.0/"+path+"?"+q,headers={"User-Agent":"EG365-Cloud/1.0"})
+        try:
+            with urllib.request.urlopen(req,timeout=20) as r:
+                return json.loads(r.read().decode("utf-8","replace")),None
+        except urllib.error.HTTPError as e:
+            try:
+                er=(json.loads(e.read().decode("utf-8","replace")).get("error") or {})
+                return None,{"path":path,"code":er.get("code"),"message":str(er.get("message") or "")[:180]}
+            except Exception:
+                return None,{"path":path,"code":e.code,"message":"HTTP error"}
+        except Exception as e:
+            return None,{"path":path,"code":None,"message":str(e)[:180]}
+    me,err=call("me","id,name")
+    if err: out["errors"].append(err)
+    elif me: out["me"]={"id":str(me.get("id") or ""),"name":str(me.get("name") or "")[:80]}
+    accounts,err=call("me/accounts","id,name,tasks")
+    if err: out["errors"].append(err)
+    elif accounts:
+        out["pages"]=[{"id":str(x.get("id") or ""),"name":str(x.get("name") or "")[:80],"tasks":x.get("tasks") or []} for x in (accounts.get("data") or [])[:20]]
+    target,err=call(page_id,"id,name") if page_id else (None,None)
+    if err: out["errors"].append(err)
+    elif target: out["target"]={"id":str(target.get("id") or ""),"name":str(target.get("name") or "")[:80]}
+    return out
