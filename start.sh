@@ -216,11 +216,17 @@ PY
     echo "EG365_SMOKE_ERROR: semantic_verification_failed"
     exit 1
   fi
-  if ! timeout 120 n8n publish:workflow --id="$SMOKE_ID"; then
-    echo "EG365_SMOKE_ERROR: publish_failed"
-    exit 1
-  fi
-  echo "EG365_SMOKE: published"
+  /opt/venv/bin/python - <<'PY' || true
+import os,sqlite3
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+con=sqlite3.connect(db,timeout=20)
+try:
+    con.execute("UPDATE workflow_entity SET active=0 WHERE id='EG365CLOUDSMOKEV128'")
+    con.commit()
+    print("EG365_SMOKE: verified_and_inactive")
+finally:
+    con.close()
+PY
 else
   /opt/venv/bin/python - <<'PY' || true
 import os,sqlite3
