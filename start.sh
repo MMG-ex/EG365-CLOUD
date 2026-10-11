@@ -280,20 +280,27 @@ if os.path.exists(db):
 PY
 fi
 
-if [ "${CLOUD_ACTIVATE:-false}" = "true" ]; then
-  echo "EG365_BOOT: publishing_workflow"
-  if ! timeout 120 n8n publish:workflow --id=EG365CLOUDRENDERV128; then
-    echo "EG365_BOOT_ERROR: publish_failed_or_timed_out"
-    exit 1
-  fi
-  echo "EG365_BOOT: workflow_publish_ok"
-else
-  echo "EG365_BOOT: workflow_stays_inactive"
-fi
+# Cloud production runs via short-lived n8n CLI executions.
+# This avoids the persistent n8n server's ~512 MiB memory pressure on Render Free.
+echo "EG365_BOOT: production_cli_mode"
+
+# Keep workflow inactive in the DB so no duplicate schedule can fire if n8n server is ever started.
+ /opt/venv/bin/python - <<'PY' || true
+import os,sqlite3
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+con=sqlite3.connect(db,timeout=20)
+try:
+    con.execute("UPDATE workflow_entity SET active=0 WHERE id IN ('EG365CLOUDRENDERV128','EG365CLOUDSMOKEV128')")
+    con.commit()
+    print("EG365_BOOT: db_schedules_disabled")
+finally:
+    con.close()
+PY
 
 echo "EG365_BOOT: starting_public_renderer"
 /opt/venv/bin/uvicorn app:app --app-dir /opt/renderer --host 0.0.0.0 --port "$PUBLIC_PORT" >/tmp/renderer.log 2>&1 &
 RPID=$!
+
 i=0
 until curl -fsS "http://127.0.0.1:$PUBLIC_PORT/health" >/dev/null 2>&1; do
   i=$((i+1))
@@ -310,76 +317,52 @@ until curl -fsS "http://127.0.0.1:$PUBLIC_PORT/health" >/dev/null 2>&1; do
   sleep 1
 done
 echo "EG365_BOOT: renderer_ready"
-
-echo "EG365_BOOT: starting_n8n_internal"
-n8n start >/tmp/n8n.log 2>&1 &
-NPID=$!
-
-i=0
-until curl -fsS "http://127.0.0.1:$N8N_PORT/healthz" >/dev/null 2>&1; do
-  i=$((i+1))
-  if ! kill -0 "$NPID" 2>/dev/null; then
-    echo "EG365_BOOT_ERROR: n8n_exited"
-    cat /tmp/n8n.log || true
-    exit 1
-  fi
-  if [ "$i" -gt 120 ]; then
-    echo "EG365_BOOT_ERROR: n8n_health_timeout"
-    cat /tmp/n8n.log || true
-    exit 1
-  fi
-  sleep 1
-done
-echo "EG365_BOOT: n8n_ready"
-/opt/venv/bin/python - <<'PY' || true
-import os,sqlite3
-db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
-try:
-    con=sqlite3.connect(db,timeout=20)
-    row=con.execute("SELECT id,name,active FROM workflow_entity WHERE id=?",("EG365CLOUDRENDERV128",)).fetchone()
-    print("EG365_VERIFY: workflow_row="+repr(row))
-    count=con.execute("SELECT COUNT(*) FROM execution_entity").fetchone()[0]
-    print("EG365_VERIFY: execution_count="+str(count))
-    con.close()
-except Exception as e:
-    print("EG365_VERIFY_WARNING: "+str(e))
-PY
 echo "EG365_BOOT: cloud_ready"
 
-(
-  while true; do
-    sleep 480
-    if curl -fsS --connect-timeout 10 --max-time 30 "https://eg365-cloud.onrender.com/health" >/dev/null 2>&1; then
-      echo "EG365_KEEPALIVE: ok"
-    else
-      echo "EG365_KEEPALIVE: warning"
-    fi
-  done
-) &
-KPID=$!
+run_prod() {
+  echo "EG365_PROD: execution_start"
+  if timeout 480 n8n execute --id=EG365CLOUDRENDERV128 >/tmp/eg365-prod.log 2>&1; then
+    echo "EG365_PROD: execution_ok"
+  else
+    rc=$?
+    echo "EG365_PROD_ERROR: execution_failed rc=$rc"
+    tail -50 /tmp/eg365-prod.log | sed -E 's/(Bearer )[A-Za-z0-9._-]+/\1[REDACTED]/g; s/([A-Za-z0-9_]*(token|api[_ -]?key)[A-Za-z0-9_]*["'"'"']?[=:]["'"'"']?)[^ ,}"'"'"']+/\1[REDACTED]/Ig' || true
+    return $rc
+  fi
 
-(
-  while true; do
-    sleep 30
-    /opt/venv/bin/python - <<'PY' || true
+  /opt/venv/bin/python - <<'PY' || true
 import os,sqlite3
 db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+con=sqlite3.connect(db,timeout=20)
 try:
-    con=sqlite3.connect(db,timeout=10)
-    for wid,label in [('EG365CLOUDRENDERV128','prod'),('EG365CLOUDSMOKEV128','smoke')]:
-        row=con.execute("SELECT id,name,active FROM workflow_entity WHERE id=?",(wid,)).fetchone()
-        try:
-            cnt=con.execute("SELECT COUNT(*) FROM execution_entity WHERE workflowId=?",(wid,)).fetchone()[0]
-            latest=con.execute("SELECT id,status,startedAt,stoppedAt FROM execution_entity WHERE workflowId=? ORDER BY id DESC LIMIT 1",(wid,)).fetchone()
-        except Exception:
-            cnt=-1; latest=None
-        print(f"EG365_MONITOR: {label}_workflow={row} executions={cnt} latest={latest}",flush=True)
-    con.close()
+    row=con.execute("SELECT id,status,startedAt,stoppedAt FROM execution_entity WHERE workflowId=? ORDER BY id DESC LIMIT 1",('EG365CLOUDRENDERV128',)).fetchone()
+    print("EG365_PROD_VERIFY: latest="+repr(row),flush=True)
 except Exception as e:
-    print("EG365_MONITOR_WARNING: "+str(e),flush=True)
+    print("EG365_PROD_VERIFY_WARNING: "+str(e),flush=True)
+finally:
+    con.close()
 PY
+}
+
+# First cloud production pass immediately after a successful boot.
+run_prod || true
+
+# V128 production cadence: every 90 minutes.
+(
+  while true; do
+    sleep 5400
+    run_prod || true
   done
 ) &
 MPID=$!
 
-wait "$NPID"
+# Public self-ping every 8 minutes keeps Render Free warm without a local PC.
+(
+  while true; do
+    sleep 480
+    curl -fsS --connect-timeout 10 --max-time 30 "https://eg365-cloud.onrender.com/health" >/dev/null 2>&1       && echo "EG365_KEEPALIVE: ok"       || echo "EG365_KEEPALIVE: warning"
+  done
+) &
+KPID=$!
+
+wait "$RPID"
