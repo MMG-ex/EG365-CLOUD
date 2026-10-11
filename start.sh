@@ -11,11 +11,13 @@ mkdir -p /root/.n8n /tmp/eg365-output
 RPID=""
 NPID=""
 MPID=""
+KPID=""
 
 cleanup() {
   [ -n "${RPID:-}" ] && kill "$RPID" 2>/dev/null || true
   [ -n "${NPID:-}" ] && kill "$NPID" 2>/dev/null || true
   [ -n "${MPID:-}" ] && kill "$MPID" 2>/dev/null || true
+  [ -n "${KPID:-}" ] && kill "$KPID" 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
@@ -249,6 +251,18 @@ except Exception as e:
     print("EG365_VERIFY_WARNING: "+str(e))
 PY
 echo "EG365_BOOT: cloud_ready"
+
+(
+  while true; do
+    sleep 480
+    if curl -fsS --connect-timeout 10 --max-time 30 "https://eg365-cloud.onrender.com/health" >/dev/null 2>&1; then
+      echo "EG365_KEEPALIVE: ok"
+    else
+      echo "EG365_KEEPALIVE: warning"
+    fi
+  done
+) &
+KPID=$!
 
 (
   while true; do
