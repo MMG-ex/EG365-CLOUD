@@ -331,12 +331,34 @@ run_prod() {
   fi
 
   /opt/venv/bin/python - <<'PY' || true
-import os,sqlite3
+import os,sqlite3,json
 db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
 con=sqlite3.connect(db,timeout=20)
 try:
     row=con.execute("SELECT id,status,startedAt,stoppedAt FROM execution_entity WHERE workflowId=? ORDER BY id DESC LIMIT 1",('EG365CLOUDRENDERV128',)).fetchone()
     print("EG365_PROD_VERIFY: latest="+repr(row),flush=True)
+    if row:
+        drow=con.execute("SELECT data FROM execution_data WHERE executionId=?",(row[0],)).fetchone()
+        obj={}
+        if drow and drow[0]:
+            try: obj=json.loads(drow[0])
+            except Exception: obj={}
+        found=[]
+        def walk(x):
+            if isinstance(x,dict):
+                if any(k in x for k in ('status_only','content_quality_pass','ai_status','publish_telegram')):
+                    found.append(x)
+                for v in x.values(): walk(v)
+            elif isinstance(x,list):
+                for v in x: walk(v)
+        walk(obj)
+        best=None
+        for x in reversed(found):
+            if x.get('content_quality_pass') is True or x.get('status_only') is True:
+                best=x; break
+        if best:
+            safe={'status_only':best.get('status_only'),'ai_status':best.get('ai_status'),'ai_model_used':best.get('ai_model_used'),'content_quality_pass':best.get('content_quality_pass'),'publish_telegram':best.get('publish_telegram'),'publish_instagram':best.get('publish_instagram'),'publish_threads':best.get('publish_threads'),'publish_facebook':best.get('publish_facebook'),'title':str(best.get('title') or '')[:140],'durum':str(best.get('DURUM') or '')[:160]}
+            print("EG365_PROD_RESULT: "+json.dumps(safe,ensure_ascii=False),flush=True)
 except Exception as e:
     print("EG365_PROD_VERIFY_WARNING: "+str(e),flush=True)
 finally:
