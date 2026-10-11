@@ -390,21 +390,51 @@ try:
                 z=first_id(v)
                 if z:return z
         return ''
+    def safe_error(x):
+        out={'code':'','message':''}
+        def walk(v):
+            if out['message']: return
+            if isinstance(v,dict):
+                if isinstance(v.get('error'),dict):
+                    e=v['error']
+                    out['code']=str(e.get('code') or e.get('status') or '')[:24]
+                    out['message']=str(e.get('message') or e.get('error_user_msg') or e.get('type') or '')[:180]
+                    if out['message']: return
+                if isinstance(v.get('error'),str) and v.get('error'):
+                    out['message']=str(v.get('error'))[:180]; return
+                for vv in v.values(): walk(vv)
+            elif isinstance(v,list):
+                for vv in v: walk(vv)
+        walk(x)
+        return out
+    def status_code(x):
+        if not isinstance(x,dict): return 0
+        for k in ('statusCode','status_code','status'):
+            v=x.get(k)
+            try:
+                n=int(v)
+                if 100<=n<=599:return n
+            except Exception: pass
+        return 0
     def channel(name):
         x=last_json(name)
         if x is None:return {'ran':False,'success':False}
         ident=first_id(x)
         explicit=x.get('ok') is True if isinstance(x,dict) else False
         data_ok=isinstance(x,dict) and isinstance(x.get('data'),list) and len(x.get('data'))>0
-        success=(not has_error(x)) and (explicit or bool(ident) or data_ok)
-        return {'ran':True,'success':bool(success),'id':ident}
+        sc=status_code(x)
+        err=safe_error(x)
+        success=(not has_error(x)) and (explicit or bool(ident) or data_ok or (200<=sc<300))
+        return {'ran':True,'success':bool(success),'id':ident,'status_code':sc,'error_code':err['code'],'error_message':err['message']}
     cand=last_json('AI SONUÇLARI AÇ + YAYIN FİLTRESİ') or {}
     cat=last_json('CATBOX PUBLIC URL YÜKLE') or {}
     caturl=''
     if isinstance(cat,dict):
-        for k in ('public_image_url','image_url','url'):
+        for k in ('public_image_url','image_url','url','body','data'):
             v=cat.get(k)
-            if isinstance(v,str) and v.startswith('http'):caturl=v;break
+            if isinstance(v,str) and 'files.catbox.moe' in v:
+                m=re.search(r'https://files\\.catbox\\.moe/[A-Za-z0-9._-]+',v)
+                if m:caturl=m.group(0);break
     audit={
       'execution_id':row[0],'status':row[1],
       'candidate':{
@@ -418,7 +448,7 @@ try:
         'publish_facebook':cand.get('publish_facebook'),
         'title':str(cand.get('title') or '')[:140]
       },
-      'catbox':{'ran':bool(cat),'success':bool(caturl),'host':('files.catbox.moe' if 'files.catbox.moe' in caturl else '')},
+      'catbox':{'ran':bool(cat),'success':bool(caturl),'host':('files.catbox.moe' if 'files.catbox.moe' in caturl else ''),'status_code':status_code(cat),'error':safe_error(cat).get('message','')},
       'telegram':channel('TELEGRAM YAYINLA'),
       'instagram_create':channel('INSTAGRAM CONTAINER'),
       'instagram_publish':channel('INSTAGRAM YAYINLA'),
@@ -490,8 +520,12 @@ PY
   audit_last_prod
 }
 
-# First cloud production pass immediately after a successful boot.
-run_prod || true
+# First cloud production pass is configurable. Final audit deploys disable it to avoid duplicate posts.
+if [ "${EG365_RUN_ON_BOOT:-true}" = "true" ]; then
+  run_prod || true
+else
+  echo "EG365_PROD: boot_run_disabled"
+fi
 
 # V128 production cadence: every 90 minutes.
 (
