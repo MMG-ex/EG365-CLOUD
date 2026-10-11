@@ -167,50 +167,63 @@ PY
   fi
   echo "EG365_SMOKE: dry_run_execution_ok"
   if ! /opt/venv/bin/python - <<'PY'
-import os,sqlite3,json,sys
-db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
-wid='EG365CLOUDSMOKEV128'
-con=sqlite3.connect(db,timeout=20)
-try:
-    row=con.execute("SELECT id,status FROM execution_entity WHERE workflowId=? ORDER BY id DESC LIMIT 1",(wid,)).fetchone()
-    if not row:
-        print("EG365_SMOKE_VERIFY: no_execution")
-        sys.exit(2)
-    eid,status=row
-    drow=con.execute("SELECT data FROM execution_data WHERE executionId=?",(eid,)).fetchone()
-    obj={}
-    if drow and drow[0]:
-        try: obj=json.loads(drow[0])
-        except Exception: obj={}
-    found=[]
-    def walk(x):
-        if isinstance(x,dict):
-            if 'status_only' in x or 'content_quality_pass' in x or 'ai_status' in x:
-                found.append(x)
-            for v in x.values(): walk(v)
-        elif isinstance(x,list):
-            for v in x: walk(v)
-    walk(obj)
-    candidate=None
-    for x in reversed(found):
-        if x.get('status_only') is False and (x.get('content_quality_pass') is True or x.get('publish_telegram') is True):
-            candidate=x; break
-    if status!='success':
-        print(f"EG365_SMOKE_VERIFY: execution_status={status}")
-        sys.exit(3)
-    if not candidate:
-        last=found[-1] if found else {}
-        print("EG365_SMOKE_VERIFY: no_publishable_candidate ai_status="+str(last.get('ai_status',''))+" durum="+str(last.get('DURUM',''))[:160])
-        sys.exit(4)
-    print("EG365_SMOKE_VERIFY: PASS ai_status="+str(candidate.get('ai_status',''))+
-          " model="+str(candidate.get('ai_model_used',''))+
-          " editorial="+str(candidate.get('content_quality_pass',False))+
-          " publish_tg="+str(candidate.get('publish_telegram',False))+
-          " publish_ig="+str(candidate.get('publish_instagram',False))+
-          " publish_th="+str(candidate.get('publish_threads',False))+
-          " publish_fb="+str(candidate.get('publish_facebook',False)))
-finally:
-    con.close()
+from pathlib import Path
+import json,sys
+p=Path('/tmp/eg365-smoke.log')
+txt=p.read_text(encoding='utf-8',errors='replace') if p.exists() else ''
+starts=[i for i,ch in enumerate(txt) if ch=='{']
+obj=None
+for i in starts:
+    j=txt.rfind('}')
+    if j<=i: continue
+    try:
+        cand=json.loads(txt[i:j+1])
+        if isinstance(cand,dict) and ('data' in cand or 'status' in cand):
+            obj=cand; break
+    except Exception:
+        pass
+if not obj:
+    print("EG365_SMOKE_VERIFY: cli_json_not_found")
+    sys.exit(2)
+status=str(obj.get('status') or '')
+run=((obj.get('data') or {}).get('resultData') or {}).get('runData') or {}
+safe=[]
+for node,runs in run.items():
+    if not isinstance(runs,list): continue
+    for rr in runs:
+        for branch in (((rr or {}).get('data') or {}).get('main') or []):
+            for item in (branch or []):
+                j=(item or {}).get('json') if isinstance(item,dict) else None
+                if isinstance(j,dict) and (
+                    'status_only' in j or 'content_quality_pass' in j or
+                    'ai_status' in j or 'publish_telegram' in j
+                ):
+                    safe.append((node,j))
+candidate=None
+for node,j in reversed(safe):
+    if j.get('status_only') is False and (
+        j.get('content_quality_pass') is True or j.get('publish_telegram') is True
+    ):
+        candidate=(node,j); break
+if status and status!='success':
+    print("EG365_SMOKE_VERIFY: execution_status="+status)
+    sys.exit(3)
+if not candidate:
+    node,j=safe[-1] if safe else ('',{})
+    print("EG365_SMOKE_VERIFY: no_publishable_candidate node="+str(node)[:80]+
+          " ai_status="+str(j.get('ai_status',''))[:80]+
+          " ai_error="+str(j.get('ai_error',''))[:100]+
+          " durum="+str(j.get('DURUM',''))[:140])
+    sys.exit(4)
+node,j=candidate
+print("EG365_SMOKE_VERIFY: PASS node="+str(node)[:80]+
+      " ai_status="+str(j.get('ai_status',''))[:80]+
+      " model="+str(j.get('ai_model_used',''))[:60]+
+      " editorial="+str(j.get('content_quality_pass',False))+
+      " publish_tg="+str(j.get('publish_telegram',False))+
+      " publish_ig="+str(j.get('publish_instagram',False))+
+      " publish_th="+str(j.get('publish_threads',False))+
+      " publish_fb="+str(j.get('publish_facebook',False)))
 PY
   then
     echo "EG365_SMOKE_ERROR: semantic_verification_failed"
