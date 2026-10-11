@@ -92,10 +92,10 @@ PY
 fi
 
 # Persist a valid Page token supplied by the cloud environment into encrypted state.
-# Optional cloud-only probe creates an UNPUBLISHED Page photo, then deletes it.
+# Cloud-only Facebook write probe creates an unpublished Page post, then deletes it.
 if [ "${EG365_FACEBOOK_PROBE:-false}" = "true" ] || { [ -n "${FACEBOOK_PAGE_ACCESS_TOKEN:-}" ] && [ "${FACEBOOK_PAGE_ACCESS_TOKEN:-}" != "PENDING" ]; }; then
   /opt/venv/bin/python - <<'PY' || true
-import os,sqlite3,json,urllib.request,urllib.parse,urllib.error,uuid
+import os,sqlite3,json,urllib.request,urllib.parse,urllib.error
 db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
 con=sqlite3.connect(db,timeout=20)
 try:
@@ -111,29 +111,22 @@ try:
         if not page_token or page_token=='PENDING' or not page_id or page_id=='PENDING':
             print("EG365_FB_PROBE: skipped_missing_credentials",flush=True)
         else:
-            img='/opt/renderer/template/ana-sablon.jpg'
-            boundary='----EG365'+uuid.uuid4().hex
-            def field(name,value):
-                return (f'--{boundary}\\r\\nContent-Disposition: form-data; name="{name}"\\r\\n\\r\\n{value}\\r\\n').encode()
-            body=b''.join([
-                field('published','false'),
-                field('caption','EG365 CLOUD bağlantı doğrulama testi'),
-                field('access_token',page_token),
-                (f'--{boundary}\\r\\nContent-Disposition: form-data; name="source"; filename="eg365-test.jpg"\\r\\nContent-Type: image/jpeg\\r\\n\\r\\n').encode(),
-                open(img,'rb').read(),b'\\r\\n',
-                (f'--{boundary}--\\r\\n').encode()
-            ])
+            data=urllib.parse.urlencode({
+              'message':'EG365 CLOUD bağlantı doğrulama testi',
+              'published':'false',
+              'access_token':page_token
+            }).encode()
             req=urllib.request.Request(
-                f'https://graph.facebook.com/v24.0/{page_id}/photos',
-                data=body,method='POST',
-                headers={'Content-Type':f'multipart/form-data; boundary={boundary}','User-Agent':'EG365-Cloud/1.0'}
+              f'https://graph.facebook.com/v24.0/{page_id}/feed',
+              data=data,method='POST',
+              headers={'User-Agent':'EG365-Cloud/1.0'}
             )
             try:
-                with urllib.request.urlopen(req,timeout=45) as r:
+                with urllib.request.urlopen(req,timeout=30) as r:
                     obj=json.loads(r.read().decode('utf-8','replace'))
                 pid=str(obj.get('id') or '')
                 if pid:
-                    print("EG365_FB_PROBE: create_ok unpublished=true id="+pid[:48],flush=True)
+                    print("EG365_FB_PROBE: create_ok unpublished=true id="+pid[:64],flush=True)
                     q=urllib.parse.urlencode({'access_token':page_token}).encode()
                     dreq=urllib.request.Request(f'https://graph.facebook.com/v24.0/{pid}',data=q,method='DELETE',headers={'User-Agent':'EG365-Cloud/1.0'})
                     try:
