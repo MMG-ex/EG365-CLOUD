@@ -231,6 +231,35 @@ if missing:
 p.write_text(s,encoding='utf-8')
 PY
 
+# Temporary cloud-origin marker: append MMG at the very bottom of every social caption.
+# This is applied only to the ephemeral cloud workflow and is easy to remove later.
+python3 - <<'PY'
+from pathlib import Path
+import json
+p=Path('/opt/workflow/EG365_CLOUD_RENDER_V128.json')
+w=json.loads(p.read_text(encoding='utf-8'))
+for n in w.get('nodes',[]):
+    name=n.get('name')
+    params=n.get('parameters') or {}
+    if name in ('TELEGRAM YAYINLA','INSTAGRAM CONTAINER','FACEBOOK YAYINLA'):
+        for x in (((params.get('bodyParameters') or {}).get('parameters')) or []):
+            if x.get('name')=='caption':
+                base=str(x.get('value') or '')
+                if 'MMG' not in base:
+                    if name=='TELEGRAM YAYINLA':
+                        x['value']="={{ ($json.telegram_caption_html || $json.telegram_caption || '') + '\\n\\nMMG' }}"
+                    elif name=='INSTAGRAM CONTAINER':
+                        x['value']="={{ ($json.instagram_caption || '') + '\\n\\nMMG' }}"
+                    else:
+                        x['value']="={{ ($json.facebook_caption || '') + '\\n\\nMMG' }}"
+    elif name=='THREADS CONTAINER':
+        for x in (((params.get('queryParameters') or {}).get('parameters')) or []):
+            if x.get('name')=='text' and 'MMG' not in str(x.get('value') or ''):
+                x['value']="={{ ($json.threads_caption || '') + '\\n\\nMMG' }}"
+p.write_text(json.dumps(w,ensure_ascii=False,indent=2),encoding='utf-8')
+print('EG365_BOOT: temporary_mmg_marker_enabled',flush=True)
+PY
+
 WF_SHA="$(sha256sum /opt/workflow/EG365_CLOUD_RENDER_V128.json | awk '{print $1}')"
 export WF_SHA
 NEED_IMPORT="$(/opt/venv/bin/python - <<'PY'
