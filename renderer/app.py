@@ -671,6 +671,26 @@ def eg365_meta_token_save(token:str,user_token:str=Form(...)):
         con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ID',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(page_id,))
         con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(page_token,))
         con.commit()
+
+        # Apply the freshly validated Page token to the already-running cloud workflow immediately.
+        # This avoids waiting for a restart and prevents an older boot-time token from being used.
+        try:
+            from pathlib import Path
+            import subprocess, re as _re
+            wf=Path("/opt/workflow/EG365_CLOUD_RENDER_V128.json")
+            txt=wf.read_text(encoding="utf-8")
+            txt=_re.sub(r"(facebook_page_id:\\s*')[^']*(')",lambda m:m.group(1)+page_id+m.group(2),txt,count=1)
+            txt=_re.sub(r"(facebook_page_access_token:\\s*')[^']*(')",lambda m:m.group(1)+page_token+m.group(2),txt,count=1)
+            wf.write_text(txt,encoding="utf-8")
+            cp=subprocess.run(["n8n","import:workflow","--input="+str(wf)],capture_output=True,text=True,timeout=150)
+            if cp.returncode!=0:
+                raise RuntimeError("workflow re-import failed")
+            con.execute("CREATE TABLE IF NOT EXISTS eg365_meta (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+            con.execute("DELETE FROM eg365_meta WHERE k='workflow_sha'")
+            con.commit()
+        except Exception as e:
+            raise HTTPException(500,"Token kaydedildi ancak workflow yenilenemedi: "+str(e)[:140])
+
         safe_name=str(page.get("name") or "")[:100]
         return Response(f"""<!doctype html><html><body style="font-family:system-ui;background:#071c3d;color:white;padding:50px">
 <div style="max-width:720px;margin:auto;background:#0d3268;padding:30px;border-radius:18px"><h1>EG365 Meta</h1>
