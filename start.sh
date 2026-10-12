@@ -59,42 +59,62 @@ con=sqlite3.connect(db,timeout=20)
 try:
     con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
     vals=dict(con.execute("SELECT k,v FROM eg365_secrets").fetchall())
-    user_token=(vals.get('FACEBOOK_USER_ACCESS_TOKEN') or os.environ.get('FACEBOOK_USER_ACCESS_TOKEN') or os.environ.get('FACEBOOK_PAGE_ACCESS_TOKEN') or vals.get('FACEBOOK_PAGE_ACCESS_TOKEN') or vals.get('INSTAGRAM_ACCESS_TOKEN') or os.environ.get('INSTAGRAM_ACCESS_TOKEN') or '').strip()
     page_id=(vals.get('FACEBOOK_PAGE_ID') or os.environ.get('FACEBOOK_PAGE_ID') or '').strip()
-    if not user_token or user_token=='PENDING' or not page_id or page_id=='PENDING':
+    candidates=[
+        ('stored_user', vals.get('FACEBOOK_USER_ACCESS_TOKEN')),
+        ('env_user', os.environ.get('FACEBOOK_USER_ACCESS_TOKEN')),
+        ('stored_instagram', vals.get('INSTAGRAM_ACCESS_TOKEN')),
+        ('env_instagram', os.environ.get('INSTAGRAM_ACCESS_TOKEN')),
+        ('stored_page', vals.get('FACEBOOK_PAGE_ACCESS_TOKEN')),
+        ('env_page', os.environ.get('FACEBOOK_PAGE_ACCESS_TOKEN')),
+    ]
+    seen=set()
+    sources=[]
+    for label,tok in candidates:
+        tok=(tok or '').strip()
+        if not tok or tok=='PENDING' or tok in seen:
+            continue
+        seen.add(tok); sources.append((label,tok))
+    if not sources or not page_id or page_id=='PENDING':
         print("EG365_FB_TOKEN_REPAIR: skipped_missing_source",flush=True)
     else:
         base='https://graph.facebook.com/v24.0/me/accounts'
-        qs=urllib.parse.urlencode({'fields':'id,name,access_token','limit':'100','access_token':user_token})
-        req=urllib.request.Request(base+'?'+qs,headers={'User-Agent':'EG365-Cloud/1.0'})
-        try:
-            with urllib.request.urlopen(req,timeout=30) as r:
-                obj=json.loads(r.read().decode('utf-8','replace'))
-            match=next((x for x in (obj.get('data') or []) if str(x.get('id') or '')==page_id and x.get('access_token')),None)
-            if not match:
-                pages=obj.get('data') or []
-                # Fallback by page name when Meta returned a changed Page ID.
-                match=next((x for x in pages if x.get('access_token') and any(t in str(x.get('name') or '').lower() for t in ('eğitim gündem 365','egitim gundem 365','egitimgundem365'))),None)
-                safe=[{'id':str(x.get('id') or ''),'name':str(x.get('name') or '')[:80],'tasks':x.get('tasks') or []} for x in pages[:20]]
-                print("EG365_FB_TOKEN_REPAIR: accounts="+json.dumps(safe,ensure_ascii=False),flush=True)
-            if match:
-                con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(str(match['access_token']),))
-                con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ID',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(str(match.get('id') or page_id),))
-                con.commit()
-                print("EG365_FB_TOKEN_REPAIR: success page_id="+str(match.get('id') or page_id),flush=True)
-            else:
-                print("EG365_FB_TOKEN_REPAIR: page_not_found_in_accounts",flush=True)
-        except urllib.error.HTTPError as e:
-            msg=''
-            code=''
+        repaired=False
+        last_error=''
+        for label,user_token in sources:
+            qs=urllib.parse.urlencode({'fields':'id,name,access_token','limit':'100','access_token':user_token})
+            req=urllib.request.Request(base+'?'+qs,headers={'User-Agent':'EG365-Cloud/1.0'})
             try:
-                er=json.loads(e.read().decode('utf-8','replace')).get('error') or {}
-                code=str(er.get('code') or '')
-                msg=str(er.get('message') or '')[:160]
-            except Exception: pass
-            print("EG365_FB_TOKEN_REPAIR: graph_error code="+code+" message="+msg,flush=True)
-        except Exception as e:
-            print("EG365_FB_TOKEN_REPAIR: request_failed "+str(e)[:160],flush=True)
+                with urllib.request.urlopen(req,timeout=30) as r:
+                    obj=json.loads(r.read().decode('utf-8','replace'))
+                match=next((x for x in (obj.get('data') or []) if str(x.get('id') or '')==page_id and x.get('access_token')),None)
+                if not match:
+                    pages=obj.get('data') or []
+                    match=next((x for x in pages if x.get('access_token') and any(t in str(x.get('name') or '').lower() for t in ('eğitim gündem 365','egitim gundem 365','egitimgundem365'))),None)
+                if match:
+                    con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(str(match['access_token']),))
+                    con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ID',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(str(match.get('id') or page_id),))
+                    if label in ('stored_user','env_user'):
+                        con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_USER_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(user_token,))
+                    con.commit()
+                    print("EG365_FB_TOKEN_REPAIR: success source="+label+" page_id="+str(match.get('id') or page_id),flush=True)
+                    repaired=True
+                    break
+                last_error='page_not_found source='+label
+            except urllib.error.HTTPError as e:
+                msg=''; code=''
+                try:
+                    er=json.loads(e.read().decode('utf-8','replace')).get('error') or {}
+                    code=str(er.get('code') or '')
+                    msg=str(er.get('message') or '')[:120]
+                except Exception: pass
+                last_error='source='+label+' code='+code+' message='+msg
+                print("EG365_FB_TOKEN_REPAIR_TRY: "+last_error,flush=True)
+            except Exception as e:
+                last_error='source='+label+' request_failed '+str(e)[:120]
+                print("EG365_FB_TOKEN_REPAIR_TRY: "+last_error,flush=True)
+        if not repaired:
+            print("EG365_FB_TOKEN_REPAIR: all_sources_failed "+last_error,flush=True)
 finally:
     con.close()
 PY
