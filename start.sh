@@ -668,10 +668,14 @@ MPID=$!
 (
   while true; do
     if [ -f /tmp/eg365-run-now.trigger ]; then
-      rm -f /tmp/eg365-run-now.trigger
-      echo "EG365_MANUAL: trigger_received"
-      run_prod || true
-      echo "EG365_MANUAL: trigger_complete"
+      if [ -d /tmp/eg365-prod.lock ]; then
+        echo "EG365_MANUAL: waiting_for_current_run"
+      else
+        rm -f /tmp/eg365-run-now.trigger
+        echo "EG365_MANUAL: trigger_received"
+        run_prod || true
+        echo "EG365_MANUAL: trigger_complete"
+      fi
     fi
     sleep 2
   done
