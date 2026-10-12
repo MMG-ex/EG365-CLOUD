@@ -616,6 +616,70 @@ def eg365_run_now(token:str):
     return Response(page,media_type="text/html",headers={"Cache-Control":"no-store"})
 
 
+@app.get("/meta-token/{token}")
+def eg365_meta_token_page(token:str):
+    import html
+    expected=os.environ.get("MANUAL_RUN_KEY","").strip()
+    if not expected or token != expected:
+        raise HTTPException(404,"Not found")
+    page="""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EG365 Meta Token Güncelle</title><style>
+body{font-family:system-ui;background:#071c3d;color:#fff;margin:0;padding:30px}.card{max-width:760px;margin:40px auto;background:#0d3268;padding:30px;border-radius:18px}
+textarea{width:100%;min-height:170px;font-size:15px;padding:12px;border-radius:10px;box-sizing:border-box}button{margin-top:16px;padding:12px 20px;font-size:16px;background:#e60023;color:#fff;border:0;border-radius:10px}
+.note{opacity:.85}</style></head><body><div class="card"><h1>EG365 Meta Token Güncelle</h1>
+<p>Yeni Meta user access tokenını aşağıya yapıştır. Token yalnızca cloud n8n state veritabanına kaydedilir.</p>
+<form method="post"><textarea name="user_token" required></textarea><br><button type="submit">Tokenı Doğrula ve Facebook'u Onar</button></form>
+<p class="note">Telegram / Instagram / Threads / 90 dakikalık çalışma düzeni değiştirilmez.</p></div></body></html>"""
+    return Response(page,media_type="text/html",headers={"Cache-Control":"no-store"})
+
+@app.post("/meta-token/{token}")
+def eg365_meta_token_save(token:str,user_token:str=Form(...)):
+    import json, sqlite3, urllib.parse, urllib.request, urllib.error
+    expected=os.environ.get("MANUAL_RUN_KEY","").strip()
+    if not expected or token != expected:
+        raise HTTPException(404,"Not found")
+    user_token=(user_token or "").strip()
+    if not user_token:
+        raise HTTPException(400,"Token boş")
+    db_path=os.environ.get("N8N_DB_PATH","/root/.n8n/database.sqlite")
+    con=sqlite3.connect(db_path,timeout=20)
+    try:
+        con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+        vals=dict(con.execute("SELECT k,v FROM eg365_secrets").fetchall())
+        wanted=(vals.get("FACEBOOK_PAGE_ID") or os.environ.get("FACEBOOK_PAGE_ID") or "").strip()
+        q=urllib.parse.urlencode({"fields":"id,name,access_token","limit":"100","access_token":user_token})
+        req=urllib.request.Request("https://graph.facebook.com/v24.0/me/accounts?"+q,headers={"User-Agent":"EG365-Cloud/1.0"})
+        try:
+            with urllib.request.urlopen(req,timeout=30) as r:
+                obj=json.loads(r.read().decode("utf-8","replace"))
+        except urllib.error.HTTPError as e:
+            try:
+                er=(json.loads(e.read().decode("utf-8","replace")).get("error") or {})
+                msg=str(er.get("message") or "Meta token doğrulanamadı")[:180]
+            except Exception:
+                msg="Meta token doğrulanamadı"
+            raise HTTPException(400,msg)
+        pages=obj.get("data") or []
+        page=next((x for x in pages if str(x.get("id") or "")==wanted and x.get("access_token")),None)
+        if not page:
+            page=next((x for x in pages if x.get("access_token") and any(t in str(x.get("name") or "").lower() for t in ("eğitim gündem 365","egitim gundem 365","egitimgundem365"))),None)
+        if not page:
+            raise HTTPException(400,"Eğitim Gündem 365 sayfası bu token ile bulunamadı")
+        page_id=str(page.get("id") or wanted)
+        page_token=str(page.get("access_token") or "")
+        con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_USER_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(user_token,))
+        con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ID',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(page_id,))
+        con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(page_token,))
+        con.commit()
+        safe_name=str(page.get("name") or "")[:100]
+        return Response(f"""<!doctype html><html><body style="font-family:system-ui;background:#071c3d;color:white;padding:50px">
+<div style="max-width:720px;margin:auto;background:#0d3268;padding:30px;border-radius:18px"><h1>EG365 Meta</h1>
+<h2>Token doğrulandı ve Facebook Page token yenilendi ✅</h2><p>Sayfa: {safe_name}</p><p>Page ID: {page_id}</p>
+<p>Bu pencereyi kapatabilirsin.</p></div></body></html>""",media_type="text/html",headers={"Cache-Control":"no-store"})
+    finally:
+        con.close()
+
+
 @app.get("/fb-diag")
 def eg365_fb_diag():
     import json, urllib.parse, urllib.request, urllib.error, sqlite3
