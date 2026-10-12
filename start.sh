@@ -12,12 +12,14 @@ RPID=""
 NPID=""
 MPID=""
 KPID=""
+TPID=""
 
 cleanup() {
   [ -n "${RPID:-}" ] && kill "$RPID" 2>/dev/null || true
   [ -n "${NPID:-}" ] && kill "$NPID" 2>/dev/null || true
   [ -n "${MPID:-}" ] && kill "$MPID" 2>/dev/null || true
   [ -n "${KPID:-}" ] && kill "$KPID" 2>/dev/null || true
+  [ -n "${TPID:-}" ] && kill "$TPID" 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
@@ -588,6 +590,10 @@ PY
 audit_last_prod
 
 run_prod() {
+  if ! mkdir /tmp/eg365-prod.lock 2>/dev/null; then
+    echo "EG365_PROD: already_running"
+    return 0
+  fi
   echo "EG365_PROD: execution_start"
   if timeout 480 n8n execute --id=EG365CLOUDRENDERV128 >/tmp/eg365-prod.log 2>&1; then
     echo "EG365_PROD: execution_ok"
@@ -595,6 +601,7 @@ run_prod() {
     rc=$?
     echo "EG365_PROD_ERROR: execution_failed rc=$rc"
     tail -50 /tmp/eg365-prod.log | sed -E 's/(Bearer )[A-Za-z0-9._-]+/\1[REDACTED]/g; s/([A-Za-z0-9_]*(token|api[_ -]?key)[A-Za-z0-9_]*["'"'"']?[=:]["'"'"']?)[^ ,}"'"'"']+/\1[REDACTED]/Ig' || true
+    rm -rf /tmp/eg365-prod.lock
     return $rc
   fi
 
@@ -633,6 +640,7 @@ finally:
     con.close()
 PY
   audit_last_prod
+  rm -rf /tmp/eg365-prod.lock
 }
 
 # First cloud production pass is configurable. Final audit deploys disable it to avoid duplicate posts.
@@ -654,6 +662,21 @@ fi
   done
 ) &
 MPID=$!
+
+# Protected one-click manual trigger. The public endpoint only drops a local
+# trigger file; this loop consumes it and runs the same production path once.
+(
+  while true; do
+    if [ -f /tmp/eg365-run-now.trigger ]; then
+      rm -f /tmp/eg365-run-now.trigger
+      echo "EG365_MANUAL: trigger_received"
+      run_prod || true
+      echo "EG365_MANUAL: trigger_complete"
+    fi
+    sleep 2
+  done
+) &
+TPID=$!
 
 # Public self-ping every 8 minutes keeps Render Free warm without a local PC.
 (
