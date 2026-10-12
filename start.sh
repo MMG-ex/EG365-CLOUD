@@ -110,12 +110,19 @@ con=sqlite3.connect(db,timeout=20)
 try:
     con.execute("CREATE TABLE IF NOT EXISTS eg365_secrets (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
     vals=dict(con.execute("SELECT k,v FROM eg365_secrets").fetchall())
-    page_token=(os.environ.get('FACEBOOK_PAGE_ACCESS_TOKEN') or vals.get('FACEBOOK_PAGE_ACCESS_TOKEN') or '').strip()
-    page_id=(os.environ.get('FACEBOOK_PAGE_ID') or vals.get('FACEBOOK_PAGE_ID') or '').strip()
+    # A freshly repaired Page token in encrypted state is authoritative.
+    # Render env may contain an older token, so it must never overwrite a newer stored token.
+    stored_page_token=(vals.get('FACEBOOK_PAGE_ACCESS_TOKEN') or '').strip()
+    env_page_token=(os.environ.get('FACEBOOK_PAGE_ACCESS_TOKEN') or '').strip()
+    page_token=(stored_page_token or env_page_token).strip()
+    page_id=(vals.get('FACEBOOK_PAGE_ID') or os.environ.get('FACEBOOK_PAGE_ID') or '').strip()
     if page_token and page_token!='PENDING':
-        con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(page_token,))
-        con.commit()
-        print("EG365_FB_TOKEN_SYNC: ok",flush=True)
+        if not stored_page_token and env_page_token:
+            con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(env_page_token,))
+            con.commit()
+            print("EG365_FB_TOKEN_SYNC: env_seeded_once",flush=True)
+        else:
+            print("EG365_FB_TOKEN_SYNC: stored_token_authoritative",flush=True)
     if os.environ.get('EG365_FACEBOOK_PROBE','false').lower()=='true':
         if not page_token or page_token=='PENDING' or not page_id or page_id=='PENDING':
             print("EG365_FB_PROBE: skipped_missing_credentials",flush=True)
