@@ -715,8 +715,8 @@ def eg365_fb_diag():
                 con.close()
     except Exception:
         pass
-    token=(os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN") or stored.get("FACEBOOK_PAGE_ACCESS_TOKEN") or "").strip()
-    page_id=(os.environ.get("FACEBOOK_PAGE_ID") or stored.get("FACEBOOK_PAGE_ID") or "").strip()
+    token=(stored.get("FACEBOOK_PAGE_ACCESS_TOKEN") or os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN") or "").strip()
+    page_id=(stored.get("FACEBOOK_PAGE_ID") or os.environ.get("FACEBOOK_PAGE_ID") or "").strip()
     out={"configured":bool(token and token!="PENDING"),"configured_page_id":page_id,"me":None,"pages":[],"errors":[]}
     if not out["configured"]:
         return out
@@ -760,7 +760,7 @@ def eg365_fb_probe_page():
         finally:
             con.close()
 
-    seed=(os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN") or stored.get("FACEBOOK_PAGE_ACCESS_TOKEN") or "").strip()
+    seed=(stored.get("FACEBOOK_USER_ACCESS_TOKEN") or os.environ.get("FACEBOOK_USER_ACCESS_TOKEN") or stored.get("FACEBOOK_PAGE_ACCESS_TOKEN") or os.environ.get("FACEBOOK_PAGE_ACCESS_TOKEN") or "").strip()
     wanted=(stored.get("FACEBOOK_PAGE_ID") or os.environ.get("FACEBOOK_PAGE_ID") or "").strip()
     if not seed or seed=="PENDING":
         return {"pass":False,"stage":"missing_seed"}
