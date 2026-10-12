@@ -599,6 +599,23 @@ async def eg365_bootstrap_import(token:str,file:UploadFile=File(...)):
 <h1>EG365 CLOUD</h1><h2>V128 anahtarları güvenli şekilde alındı.</h2><p>Bu pencereyi kapatabilirsin.</p></body></html>""",media_type="text/html")
 
 
+# -------- Protected one-click manual production trigger --------
+@app.get("/run-now/{token}")
+def eg365_run_now(token:str):
+    import hmac, time
+    expected=os.environ.get("MANUAL_RUN_KEY","").strip()
+    if not expected or not hmac.compare_digest(token,expected):
+        raise HTTPException(404,"Not found")
+    trigger=os.environ.get("MANUAL_TRIGGER_FILE","/tmp/eg365-run-now.trigger")
+    already=os.path.exists(trigger)
+    if not already:
+        with open(trigger,"w",encoding="utf-8") as f:
+            f.write(str(int(time.time())))
+    page="""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EG365 Manuel Çalıştırma</title>
+<style>body{font-family:system-ui;background:#071c3d;color:#fff;margin:0;padding:40px}.card{max-width:680px;margin:40px auto;background:#0d3268;padding:30px;border-radius:18px}.ok{font-size:24px;font-weight:800;color:#8cffb0}.note{opacity:.9}</style></head><body><div class="card"><div class="ok">EG365 manuel çalışma tetiklendi ✅</div><p>Cloud workflow tek seferlik çalışma kuyruğuna alındı.</p><p class="note">90 dakikalık otomatik yayın döngüsü aktif kalmaya devam eder. Bilgisayarın açık olması gerekmez.</p></div></body></html>"""
+    return Response(page,media_type="text/html",headers={"Cache-Control":"no-store"})
+
+
 @app.get("/fb-diag")
 def eg365_fb_diag():
     import json, urllib.parse, urllib.request, urllib.error, sqlite3
