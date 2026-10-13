@@ -700,6 +700,76 @@ def eg365_meta_token_save(token:str,user_token:str=Form(...)):
         con.close()
 
 
+@app.get("/channels-diag/{token}")
+def eg365_channels_diag(token:str):
+    import json, re, urllib.parse, urllib.request, urllib.error, hmac
+    expected=os.environ.get("MANUAL_RUN_KEY","").strip()
+    if not expected or not hmac.compare_digest(token,expected):
+        raise HTTPException(404,"Not found")
+    wf_path="/opt/workflow/EG365_CLOUD_RENDER_V128.json"
+    out={"telegram":{"configured":False,"ok":False},"instagram":{"configured":False,"ok":False},"threads":{"configured":False,"ok":False}}
+    try:
+        w=json.loads(open(wf_path,"r",encoding="utf-8").read())
+        cfg=next((n for n in w.get("nodes",[]) if n.get("name")=="CONFIG"),None) or {}
+        code=((cfg.get("parameters") or {}).get("jsCode") or "")
+        def val(key):
+            m=re.search(r"(?m)^\\s*"+re.escape(key)+r":\\s*['\"]([^'\"]*)['\"]",code)
+            return (m.group(1).strip() if m else "")
+        tg=val("telegram_bot_token")
+        ig_uid=val("instagram_user_id"); ig=val("instagram_access_token")
+        th=val("threads_access_token")
+        out["telegram"]["configured"]=bool(tg)
+        out["instagram"]["configured"]=bool(ig_uid and ig)
+        out["threads"]["configured"]=bool(th)
+
+        if tg:
+            try:
+                req=urllib.request.Request("https://api.telegram.org/bot"+tg+"/getMe",headers={"User-Agent":"EG365-Cloud/1.0"})
+                with urllib.request.urlopen(req,timeout=20) as r:
+                    j=json.loads(r.read().decode("utf-8","replace"))
+                out["telegram"]={"configured":True,"ok":bool(j.get("ok")),"username":str((j.get("result") or {}).get("username") or "")[:80]}
+            except Exception as e:
+                out["telegram"]={"configured":True,"ok":False,"error":str(e)[:160]}
+
+        if ig_uid and ig:
+            try:
+                q=urllib.parse.urlencode({"fields":"id,username","access_token":ig})
+                req=urllib.request.Request("https://graph.instagram.com/v23.0/"+urllib.parse.quote(ig_uid)+"?"+q,headers={"User-Agent":"EG365-Cloud/1.0"})
+                with urllib.request.urlopen(req,timeout=20) as r:
+                    j=json.loads(r.read().decode("utf-8","replace"))
+                out["instagram"]={"configured":True,"ok":bool(j.get("id")),"id":str(j.get("id") or "")[:40],"username":str(j.get("username") or "")[:80]}
+            except urllib.error.HTTPError as e:
+                try:
+                    er=(json.loads(e.read().decode("utf-8","replace")).get("error") or {})
+                    msg=str(er.get("message") or "")[:160]; code_=er.get("code")
+                except Exception:
+                    msg="HTTP error"; code_=e.code
+                out["instagram"]={"configured":True,"ok":False,"error_code":code_,"error":msg}
+            except Exception as e:
+                out["instagram"]={"configured":True,"ok":False,"error":str(e)[:160]}
+
+        if th:
+            try:
+                q=urllib.parse.urlencode({"fields":"id,username","access_token":th})
+                req=urllib.request.Request("https://graph.threads.net/v1.0/me?"+q,headers={"User-Agent":"EG365-Cloud/1.0"})
+                with urllib.request.urlopen(req,timeout=20) as r:
+                    j=json.loads(r.read().decode("utf-8","replace"))
+                out["threads"]={"configured":True,"ok":bool(j.get("id")),"id":str(j.get("id") or "")[:40],"username":str(j.get("username") or "")[:80]}
+            except urllib.error.HTTPError as e:
+                try:
+                    er=(json.loads(e.read().decode("utf-8","replace")).get("error") or {})
+                    msg=str(er.get("message") or "")[:160]; code_=er.get("code")
+                except Exception:
+                    msg="HTTP error"; code_=e.code
+                out["threads"]={"configured":True,"ok":False,"error_code":code_,"error":msg}
+            except Exception as e:
+                out["threads"]={"configured":True,"ok":False,"error":str(e)[:160]}
+    except Exception as e:
+        out["error"]="diag_failed: "+str(e)[:180]
+    out["all_ok"]=bool(out["telegram"].get("ok") and out["instagram"].get("ok") and out["threads"].get("ok"))
+    return out
+
+
 @app.get("/fb-diag")
 def eg365_fb_diag():
     import json, urllib.parse, urllib.request, urllib.error, sqlite3
