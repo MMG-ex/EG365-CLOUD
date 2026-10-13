@@ -715,9 +715,10 @@ def eg365_channels_diag(token:str):
         def val(key):
             m=re.search(r"(?m)^\\s*"+re.escape(key)+r":\\s*['\"]([^'\"]*)['\"]",code)
             return (m.group(1).strip() if m else "")
-        tg=val("telegram_bot_token")
-        ig_uid=val("instagram_user_id"); ig=val("instagram_access_token")
-        th=val("threads_access_token")
+        tg=(os.environ.get("TELEGRAM_BOT_TOKEN") or val("telegram_bot_token")).strip()
+        ig_uid=(os.environ.get("INSTAGRAM_USER_ID") or val("instagram_user_id")).strip()
+        ig=(os.environ.get("INSTAGRAM_ACCESS_TOKEN") or val("instagram_access_token")).strip()
+        th=(os.environ.get("THREADS_ACCESS_TOKEN") or val("threads_access_token")).strip()
         out["telegram"]["configured"]=bool(tg)
         out["instagram"]["configured"]=bool(ig_uid and ig)
         out["threads"]["configured"]=bool(th)
