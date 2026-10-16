@@ -197,7 +197,8 @@ s=p.read_text(encoding='utf-8')
 keys=[
 'OPENAI_API_KEY','TELEGRAM_BOT_TOKEN','TELEGRAM_CHAT_ID','TELEGRAM_PUBLIC_URL',
 'INSTAGRAM_USER_ID','INSTAGRAM_ACCESS_TOKEN','THREADS_ACCESS_TOKEN',
-'FACEBOOK_PAGE_ID','FACEBOOK_PAGE_ACCESS_TOKEN'
+'FACEBOOK_PAGE_ID','FACEBOOK_PAGE_ACCESS_TOKEN',
+'X_CLIENT_ID','X_CLIENT_SECRET','X_USER_ACCESS_TOKEN','X_REFRESH_TOKEN'
 ]
 activate=os.environ.get('CLOUD_ACTIVATE','false').lower()=='true'
 stored={}
@@ -706,10 +707,10 @@ else
   echo "EG365_PROD: boot_run_disabled"
 fi
 
-# V128 production cadence: every 90 minutes.
+# Production cadence: every 120 minutes.
 (
   while true; do
-    sleep 5400
+    sleep 7200
     if [ "${CLOUD_ACTIVATE:-false}" = "true" ]; then
       run_prod || true
     else
