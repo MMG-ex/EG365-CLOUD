@@ -792,7 +792,7 @@ MPID=$!
         else
           rc=$?
           echo "EG365_MANUAL_ERROR: execution_failed rc=$rc"
-          tail -60 /tmp/eg365-manual.log | sed -E 's/(Bearer )[A-Za-z0-9._-]+/\1[REDACTED]/g; s/([A-Za-z0-9_]*(token|api[_ -]?key)[A-Za-z0-9_]*["'"']?[=:]["'"']?)[^ ,}"'"']+/\1[REDACTED]/Ig' || true
+          tail -60 /tmp/eg365-manual.log | sed -E 's/Bearer [A-Za-z0-9._-]+/Bearer [REDACTED]/g' || true
         fi
         /opt/venv/bin/python - <<'PY' || true
 import os,sqlite3
