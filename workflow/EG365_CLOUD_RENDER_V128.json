@@ -1452,7 +1452,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cfg=$('CONFIG').first().json;\nif(cfg.dry_run) return [];\nif(!String(cfg.threads_access_token||'').trim()) {\n  throw new Error('THREADS TOKEN YOK');\n}\nreturn $input.all().filter(item=>{\n  const j=item.json||{};\n  const img=String(j.public_image_url||'').trim();\n  const text=String(j.threads_caption||'').trim();\n  return j.publish_threads===true &&\n    /^https:\\/\\/files\\.catbox\\.moe\\/[A-Za-z0-9._-]+$/i.test(img) &&\n    text.length>0;\n});"
+        "jsCode": "const cfg=$('CONFIG').first().json;\nif(cfg.dry_run) return [];\nif(!String(cfg.threads_access_token||'').trim()) throw new Error('THREADS TOKEN YOK');\nreturn $input.all().filter(item=>{\n  const j=item.json||{};\n  const img=String(j.public_image_url||j.image_url||'').trim();\n  const text=String(j.threads_caption||'').trim();\n  const publicHttps=/^https:\\/\\//i.test(img) && !/^https?:\\/\\/(?:127\\.0\\.0\\.1|localhost)(?::|\\/)/i.test(img);\n  return j.publish_threads===true && publicHttps && text.length>0;\n});"
       },
       "id": "d7030415-8abd-4df2-a218-47fa933e5a33",
       "name": "THREADS PUBLIC URL FILTRE",
