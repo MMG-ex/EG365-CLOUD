@@ -235,7 +235,7 @@ PY
 # This is applied only to the ephemeral cloud workflow and is easy to remove later.
 python3 - <<'PY'
 from pathlib import Path
-import json
+import json, os
 p=Path('/opt/workflow/EG365_CLOUD_RENDER_V128.json')
 w=json.loads(p.read_text(encoding='utf-8'))
 for n in w.get('nodes',[]):
