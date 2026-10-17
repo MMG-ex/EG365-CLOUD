@@ -372,6 +372,11 @@ for(const item of $input.all()){
   out.push({json:{...j,status_only:false,bullets,bullet_1:bullets[0]||'',bullet_2:bullets[1]||'',bullet_3:bullets[2]||'',bullet_count:bullets.length,_candidate_gate_passed:true,_candidate_gate_version:'MANUAL_OFFICIAL_SAFE_V1'}});
 }
 return out;"""
+    elif name=='X CANLI FILTRE1':
+        # X is not part of the requested manual EG365 publish set.
+        # Current credential is app-only and would turn an otherwise successful
+        # Telegram/Instagram/Threads/Facebook run into a false execution error.
+        p['jsCode']="return [];"
     elif name=='AI SONUÇLARI AÇ + YAYIN FİLTRESİ':
         p['jsCode']=r"""const bundle=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};
 const src=(bundle.sources||[])[0]||null;
