@@ -955,6 +955,76 @@ try:
 finally:
     con.close()
 PY
+        /opt/venv/bin/python - <<'PY' || true
+import os,sqlite3,json,re
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+wid='EG365CLOUDMANUALV128'
+con=sqlite3.connect(db,timeout=20)
+try:
+    row=con.execute("SELECT id FROM execution_entity WHERE workflowId=? ORDER BY id DESC LIMIT 1",(wid,)).fetchone()
+    if not row:
+        print("EG365_MANUAL_TRACE: no_execution",flush=True); raise SystemExit
+    drow=con.execute("SELECT data FROM execution_data WHERE executionId=?",(row[0],)).fetchone()
+    if not drow or not drow[0]:
+        print("EG365_MANUAL_TRACE: no_data",flush=True); raise SystemExit
+    raw=json.loads(drow[0])
+    if isinstance(raw,list):
+        arr=raw; memo={}
+        def top(i):
+            if i in memo:return memo[i]
+            if i<0 or i>=len(arr):return None
+            x=arr[i]
+            if isinstance(x,str):return x
+            if isinstance(x,dict):
+                out={}; memo[i]=out
+                for k,v in x.items():out[k]=nested(v)
+                return out
+            if isinstance(x,list):
+                out=[]; memo[i]=out; out.extend(nested(v) for v in x); return out
+            return x
+        def nested(v):
+            if isinstance(v,str) and re.fullmatch(r'\d+',v):
+                n=int(v)
+                if 0<=n<len(arr): return top(n)
+            if isinstance(v,dict): return {k:nested(x) for k,x in v.items()}
+            if isinstance(v,list): return [nested(x) for x in v]
+            return v
+        root=top(0)
+    else:
+        root=raw
+    run=((root or {}).get('resultData') or {}).get('runData') or {}
+    nodes=list(run.keys())
+    watch=['ÖN FİLTRE + TEKRAR KONTROLÜ','HABER DETAYINI AÇ','OPENAI TOPLU İSTEK HAZIRLA','AI SONUÇLARI AÇ + YAYIN FİLTRESİ','YAYIN ADAYI VARSA DEVAM','SON DUPLICATE KONTROLÜ','TELEGRAM CANLI FİLTRE','TELEGRAM YAYINLA','INSTAGRAM CANLI FİLTRE','INSTAGRAM CONTAINER','INSTAGRAM YAYINLA','THREADS CANLI FİLTRE','THREADS CONTAINER','THREADS YAYINLA','FACEBOOK CANLI FİLTRE','FACEBOOK YAYINLA']
+    def last_json(name):
+        runs=run.get(name) or []
+        for rr in reversed(runs):
+            mains=((rr or {}).get('data') or {}).get('main') or []
+            for branch in reversed(mains):
+                if not branch: continue
+                for item in reversed(branch):
+                    if isinstance(item,dict) and isinstance(item.get('json'),dict): return item['json']
+        return None
+    out={'execution_id':row[0],'nodes':nodes}
+    for name in watch:
+        j=last_json(name)
+        if j is None: continue
+        out[name]={
+          'status_only':j.get('status_only'),'run_mode':j.get('run_mode'),
+          'title':str(j.get('title') or j.get('title_main') or '')[:120],
+          'DURUM':str(j.get('DURUM') or '')[:140],
+          'scan_debug':j.get('scan_debug'),
+          'article_enriched':j.get('article_enriched'),
+          'source_content_chars':j.get('source_content_chars'),
+          'content_quality_pass':j.get('content_quality_pass'),
+          'publish_telegram':j.get('publish_telegram'),
+          'publish_instagram':j.get('publish_instagram'),
+          'publish_threads':j.get('publish_threads'),
+          'publish_facebook':j.get('publish_facebook')
+        }
+    print("EG365_MANUAL_TRACE: "+json.dumps(out,ensure_ascii=False),flush=True)
+finally:
+    con.close()
+PY
         audit_last_manual
         echo "EG365_MANUAL: trigger_complete"
       fi
