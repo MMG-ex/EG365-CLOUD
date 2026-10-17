@@ -994,7 +994,7 @@ try:
         root=raw
     run=((root or {}).get('resultData') or {}).get('runData') or {}
     nodes=list(run.keys())
-    watch=['ÖN FİLTRE + TEKRAR KONTROLÜ','HABER DETAYINI AÇ','OPENAI TOPLU İSTEK HAZIRLA','AI SONUÇLARI AÇ + YAYIN FİLTRESİ','YAYIN ADAYI VARSA DEVAM','SON DUPLICATE KONTROLÜ','TELEGRAM CANLI FİLTRE','TELEGRAM YAYINLA','INSTAGRAM CANLI FİLTRE','INSTAGRAM CONTAINER','INSTAGRAM YAYINLA','THREADS CANLI FİLTRE','THREADS CONTAINER','THREADS YAYINLA','FACEBOOK CANLI FİLTRE','FACEBOOK YAYINLA']
+    watch=['RSS OKU','ÖN FİLTRE + TEKRAR KONTROLÜ','HABER DETAYINI AÇ','OPENAI TOPLU İSTEK HAZIRLA','AI SONUÇLARI AÇ + YAYIN FİLTRESİ','YAYIN ADAYI VARSA DEVAM','SON DUPLICATE KONTROLÜ','TELEGRAM CANLI FİLTRE','TELEGRAM YAYINLA','INSTAGRAM CANLI FİLTRE','INSTAGRAM CONTAINER','INSTAGRAM YAYINLA','THREADS CANLI FİLTRE','THREADS CONTAINER','THREADS YAYINLA','FACEBOOK CANLI FİLTRE','FACEBOOK YAYINLA']
     def last_json(name):
         runs=run.get(name) or []
         for rr in reversed(runs):
@@ -1019,7 +1019,11 @@ try:
           'publish_telegram':j.get('publish_telegram'),
           'publish_instagram':j.get('publish_instagram'),
           'publish_threads':j.get('publish_threads'),
-          'publish_facebook':j.get('publish_facebook')
+          'publish_facebook':j.get('publish_facebook'),
+          'statusCode':j.get('statusCode') or j.get('status_code'),
+          'error':str(j.get('error') or '')[:220],
+          'raw_type':type(j.get('raw')).__name__ if 'raw' in j else None,
+          'raw_preview':str(j.get('raw') or j.get('data') or j.get('body') or '')[:260]
         }
     print("EG365_MANUAL_TRACE: "+json.dumps(out,ensure_ascii=False),flush=True)
 finally:
