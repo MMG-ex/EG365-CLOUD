@@ -650,27 +650,27 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://catbox.moe/user/api.php",
+        "url": "http://127.0.0.1:10000/publish",
         "sendBody": true,
         "contentType": "multipart-form-data",
         "bodyParameters": {
           "parameters": [
             {
-              "name": "reqtype",
-              "value": "fileupload"
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
             },
             {
-              "parameterType": "formBinaryData",
-              "name": "fileToUpload",
-              "inputDataFieldName": "data"
+              "name": "filename",
+              "value": "={{ $binary.data.fileName || 'eg365.jpg' }}"
             }
           ]
         },
         "options": {
           "response": {
             "response": {
-              "responseFormat": "text",
-              "outputPropertyName": "catbox_url"
+              "neverError": false,
+              "responseFormat": "json"
             }
           },
           "timeout": 60000
@@ -692,7 +692,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const originals=$('GÖRSEL BINARY META EKLE').all();\nreturn $input.all().map((item,i)=>{\n  const src=originals[i]?.json || originals[0]?.json || {};\n  const raw=item.json?.catbox_url ?? item.json?.data ?? item.json?.body ?? '';\n  const url=String(raw||'').trim();\n  if(!/^https:\\/\\/files\\.catbox\\.moe\\/[A-Za-z0-9._-]+$/i.test(url)){\n    throw new Error('Catbox public URL alınamadı: '+JSON.stringify(item.json||{}).slice(0,400));\n  }\n  return {json:{...src,image_url:url,public_image_url:url,image_host:'catbox',image_public_ready:true}};\n});"
+        "jsCode": "const originals=$('GÖRSEL BINARY META EKLE').all();\nreturn $input.all().map((item,i)=>{\n  const src=originals[i]?.json || originals[0]?.json || {};\n  const j=item.json||{};\n  const url=String(j.public_upload_url||j.url||j.body?.public_upload_url||j.body?.url||'').trim();\n  if(!/^https:\\/\\/eg365-cloud\\.onrender\\.com\\/media\\/[A-Za-z0-9._-]+$/i.test(url)){\n    throw new Error('Render public URL alınamadı: '+JSON.stringify(j).slice(0,400));\n  }\n  return {json:{...src,image_url:url,public_image_url:url,image_host:'render',image_public_ready:true}};\n});"
       },
       "id": "2f75d64d-cce2-4f40-9fa5-87bca70d2da2",
       "name": "PUBLIC GÖRSEL URL EKLE",
@@ -2004,11 +2004,6 @@
             "index": 0
           },
           {
-            "node": "THREADS CANLI FİLTRE",
-            "type": "main",
-            "index": 0
-          },
-          {
             "node": "X CANLI FILTRE1",
             "type": "main",
             "index": 0
@@ -2591,13 +2586,7 @@
     },
     "THREADS CANLI FİLTRE": {
       "main": [
-        [
-          {
-            "node": "THREADS CONTAINER",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "THREADS CONTAINER": {
