@@ -699,6 +699,156 @@ finally:
 PY
 }
 
+audit_last_manual() {
+  /opt/venv/bin/python - <<'PY' || true
+import os,sqlite3,json,re
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+wid='EG365CLOUDMANUALV128'
+con=sqlite3.connect(db,timeout=20)
+try:
+    row=con.execute("SELECT id,status,startedAt,stoppedAt FROM execution_entity WHERE workflowId=? ORDER BY id DESC LIMIT 1",(wid,)).fetchone()
+    if not row:
+        print("EG365_MANUAL_AUDIT: no_execution",flush=True); raise SystemExit
+    drow=con.execute("SELECT data FROM execution_data WHERE executionId=?",(row[0],)).fetchone()
+    if not drow or not drow[0]:
+        print("EG365_MANUAL_AUDIT: no_execution_data id="+str(row[0]),flush=True); raise SystemExit
+    raw=json.loads(drow[0])
+    if isinstance(raw,list):
+        arr=raw; memo={}
+        def top(i):
+            if i in memo:return memo[i]
+            if i<0 or i>=len(arr):return None
+            x=arr[i]
+            if isinstance(x,str):return x
+            if isinstance(x,dict):
+                out={}; memo[i]=out
+                for k,v in x.items():out[k]=nested(v)
+                return out
+            if isinstance(x,list):
+                out=[]; memo[i]=out
+                out.extend(nested(v) for v in x); return out
+            return x
+        def nested(v):
+            if isinstance(v,str) and re.fullmatch(r'\d+',v):
+                n=int(v)
+                if 0<=n<len(arr):return top(n)
+            if isinstance(v,dict):return {k:nested(x) for k,x in v.items()}
+            if isinstance(v,list):return [nested(x) for x in v]
+            return v
+        root=top(0)
+    else:
+        root=raw
+    run=((root or {}).get('resultData') or {}).get('runData') or {}
+    def last_json(name):
+        runs=run.get(name) or []
+        for rr in reversed(runs):
+            mains=((rr or {}).get('data') or {}).get('main') or []
+            for branch in reversed(mains):
+                if not branch: continue
+                for item in reversed(branch):
+                    if isinstance(item,dict) and isinstance(item.get('json'),dict):
+                        return item['json']
+        return None
+    def has_error(x):
+        if isinstance(x,dict):
+            for k,v in x.items():
+                if str(k).lower() in ('error','errors') and v not in (None,'',False,[],{}): return True
+                if has_error(v): return True
+        elif isinstance(x,list):
+            return any(has_error(v) for v in x)
+        return False
+    def first_id(x):
+        if isinstance(x,dict):
+            for k in ('message_id','post_id','creation_id','id'):
+                v=x.get(k)
+                if isinstance(v,(str,int)) and str(v): return str(v)[:48]
+            for v in x.values():
+                z=first_id(v)
+                if z:return z
+        elif isinstance(x,list):
+            for v in x:
+                z=first_id(v)
+                if z:return z
+        return ''
+    def safe_error(x):
+        out={'code':'','message':''}
+        def walk(v):
+            if out['message']: return
+            if isinstance(v,dict):
+                if isinstance(v.get('error'),dict):
+                    e=v['error']
+                    out['code']=str(e.get('code') or e.get('status') or '')[:24]
+                    out['message']=str(e.get('message') or e.get('error_user_msg') or e.get('type') or '')[:180]
+                    if out['message']: return
+                if isinstance(v.get('error'),str) and v.get('error'):
+                    out['message']=str(v.get('error'))[:180]; return
+                for vv in v.values(): walk(vv)
+            elif isinstance(v,list):
+                for vv in v: walk(vv)
+        walk(x)
+        return out
+    def status_code(x):
+        if not isinstance(x,dict): return 0
+        for k in ('statusCode','status_code','status'):
+            v=x.get(k)
+            try:
+                n=int(v)
+                if 100<=n<=599:return n
+            except Exception: pass
+        return 0
+    def channel(name):
+        x=last_json(name)
+        if x is None:return {'ran':False,'success':False}
+        ident=first_id(x)
+        explicit=x.get('ok') is True if isinstance(x,dict) else False
+        data_ok=isinstance(x,dict) and isinstance(x.get('data'),list) and len(x.get('data'))>0
+        sc=status_code(x)
+        err=safe_error(x)
+        success=(not has_error(x)) and (explicit or bool(ident) or data_ok or (200<=sc<300))
+        return {'ran':True,'success':bool(success),'id':ident,'status_code':sc,'error_code':err['code'],'error_message':err['message']}
+    cand=last_json('AI SONUÇLARI AÇ + YAYIN FİLTRESİ') or {}
+    cat=last_json('CATBOX PUBLIC URL YÜKLE') or {}
+    caturl=''
+    if isinstance(cat,dict):
+        for k in ('public_image_url','image_url','url','body','data'):
+            v=cat.get(k)
+            if isinstance(v,str) and 'files.catbox.moe' in v:
+                m=re.search(r'https://files\\.catbox\\.moe/[A-Za-z0-9._-]+',v)
+                if m:caturl=m.group(0);break
+    audit={
+      'execution_id':row[0],'status':row[1],
+      'candidate':{
+        'status_only':cand.get('status_only'),
+        'content_quality_pass':cand.get('content_quality_pass'),
+        'ai_status':str(cand.get('ai_status') or '')[:60],
+        'ai_model_used':str(cand.get('ai_model_used') or '')[:60],
+        'publish_telegram':cand.get('publish_telegram'),
+        'publish_instagram':cand.get('publish_instagram'),
+        'publish_threads':cand.get('publish_threads'),
+        'publish_facebook':cand.get('publish_facebook'),
+        'title':str(cand.get('title') or '')[:140]
+      },
+      'catbox':{'ran':bool(cat),'success':bool(caturl) or (200<=status_code(cat)<300 and not has_error(cat)),'host':('files.catbox.moe' if 'files.catbox.moe' in caturl else ''),'status_code':status_code(cat),'error':safe_error(cat).get('message','')},
+      'telegram':channel('TELEGRAM YAYINLA'),
+      'instagram_create':channel('INSTAGRAM CONTAINER'),
+      'instagram_publish':channel('INSTAGRAM YAYINLA'),
+      'instagram_verify':channel('INSTAGRAM YAYIN DOĞRULA'),
+      'threads_create':channel('THREADS CONTAINER'),
+      'threads_publish':channel('THREADS YAYINLA'),
+      'threads_verify':channel('THREADS YAYIN DOĞRULA'),
+      'facebook':channel('FACEBOOK YAYINLA'),
+      'memory':{'ran':last_json('YAYIN HAFIZASINA KAYDET') is not None}
+    }
+    print("EG365_MANUAL_AUDIT: "+json.dumps(audit,ensure_ascii=False),flush=True)
+except SystemExit:
+    pass
+except Exception as e:
+    print("EG365_MANUAL_AUDIT_WARNING: "+str(e),flush=True)
+finally:
+    con.close()
+PY
+}
+
 # Audit the restored state before the next run. This confirms the previous cloud run without republishing it.
 audit_last_prod
 
@@ -804,6 +954,7 @@ try:
 finally:
     con.close()
 PY
+        audit_last_manual
         echo "EG365_MANUAL: trigger_complete"
       fi
     fi
