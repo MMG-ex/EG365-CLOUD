@@ -355,6 +355,23 @@ for n in w.get('nodes',[]):
         if old not in code:
             raise SystemExit('final duplicate anchor missing')
         p['jsCode']=code.replace(old,new,1)
+    elif name=='YAYIN ADAYI VARSA DEVAM':
+        p['jsCode']=r"""const out=[];
+for(const item of $input.all()){
+  const j=item?.json||{};
+  if(j.status_only===true)continue;
+  const url=String(j.official_source_url||j.source_url||j.link||'').trim();
+  const imageUrl=String(j.source_image_url||'').trim();
+  const verified=j.verified===true && /^https:\/\/[^/]*meb\.gov\.tr\//i.test(url);
+  const imageOK=j.source_image_found===true && /^https?:\/\//i.test(imageUrl) && String(j.source_image_method||'').toLowerCase()!=='placeholder';
+  const editorOK=j._newsroom?.quality_gate==='PASS';
+  const lead=String(j.lead||j.summary||'').trim();
+  const title=String(j.title_main||j.title||'').trim();
+  if(!verified||!imageOK||!editorOK||title.length<25||lead.length<80)continue;
+  const bullets=(Array.isArray(j.bullets)?j.bullets:[j.bullet_1,j.bullet_2,j.bullet_3]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,3);
+  out.push({json:{...j,status_only:false,bullets,bullet_1:bullets[0]||'',bullet_2:bullets[1]||'',bullet_3:bullets[2]||'',bullet_count:bullets.length,_candidate_gate_passed:true,_candidate_gate_version:'MANUAL_OFFICIAL_SAFE_V1'}});
+}
+return out;"""
     elif name=='AI SONUÇLARI AÇ + YAYIN FİLTRESİ':
         p['jsCode']=r"""const bundle=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};
 const src=(bundle.sources||[])[0]||null;
