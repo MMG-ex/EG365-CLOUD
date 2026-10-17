@@ -231,7 +231,7 @@ if missing:
 p.write_text(s,encoding='utf-8')
 PY
 
-# Temporary cloud-origin marker: append MMG at the very bottom of every social caption.
+# Temporary cloud-origin marker: append MMG and @mmuratg at the very bottom of every social caption.
 # This is applied only to the ephemeral cloud workflow and is easy to remove later.
 python3 - <<'PY'
 from pathlib import Path
@@ -247,15 +247,15 @@ for n in w.get('nodes',[]):
                 base=str(x.get('value') or '')
                 if 'MMG' not in base:
                     if name=='TELEGRAM YAYINLA':
-                        x['value']="={{ ($json.telegram_caption_html || $json.telegram_caption || '') + '\\n\\nMMG' }}"
+                        x['value']="={{ ($json.telegram_caption_html || $json.telegram_caption || '') + '\\n\\nMMG\\n@mmuratg' }}"
                     elif name=='INSTAGRAM CONTAINER':
-                        x['value']="={{ ($json.instagram_caption || '') + '\\n\\nMMG' }}"
+                        x['value']="={{ ($json.instagram_caption || '') + '\\n\\nMMG\\n@mmuratg' }}"
                     else:
-                        x['value']="={{ ($json.facebook_caption || '') + '\\n\\nMMG' }}"
+                        x['value']="={{ ($json.facebook_caption || '') + '\\n\\nMMG\\n@mmuratg' }}"
     elif name=='THREADS CONTAINER':
         for x in (((params.get('queryParameters') or {}).get('parameters')) or []):
             if x.get('name')=='text' and 'MMG' not in str(x.get('value') or ''):
-                x['value']="={{ ($json.threads_caption || '') + '\\n\\nMMG' }}"
+                x['value']="={{ ($json.threads_caption || '') + '\\n\\nMMG\\n@mmuratg' }}"
 p.write_text(json.dumps(w,ensure_ascii=False,indent=2),encoding='utf-8')
 print('EG365_BOOT: temporary_mmg_marker_enabled',flush=True)
 PY
