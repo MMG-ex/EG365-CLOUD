@@ -851,6 +851,7 @@ PY
 
 # Audit the restored state before the next run. This confirms the previous cloud run without republishing it.
 audit_last_prod
+audit_last_manual
 
 run_prod() {
   if ! mkdir /tmp/eg365-prod.lock 2>/dev/null; then
