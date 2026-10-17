@@ -307,6 +307,63 @@ else
   echo "EG365_BOOT: workflow_import_skipped_same_revision"
 fi
 
+# Build a separate manual-only workflow. Normal production keeps all duplicate protection.
+# The manual copy may republish the newest verified official item when the user explicitly requests it.
+MANUAL_ID="EG365CLOUDMANUALV128"
+echo "EG365_MANUAL_BOOT: preparing_manual_workflow"
+if ! /opt/venv/bin/python - <<'PY'
+from pathlib import Path
+import json
+src=Path('/opt/workflow/EG365_CLOUD_RENDER_V128.json')
+dst=Path('/tmp/EG365_CLOUD_MANUAL_V128.json')
+w=json.loads(src.read_text(encoding='utf-8'))
+w['id']='EG365CLOUDMANUALV128'
+w['name']='EG365 CLOUD V128 - MANUAL VERIFIED PUBLISH'
+w['active']=False
+w['versionId']='12800000-0000-4000-8000-00000000a128'
+
+for n in w.get('nodes',[]):
+    name=n.get('name')
+    p=n.get('parameters') or {}
+    code=p.get('jsCode')
+    if name=='CONFIG' and isinstance(code,str):
+        old="const __runMode=String($json?.run_mode||'normal');"
+        if old not in code:
+            raise SystemExit('CONFIG run_mode anchor missing')
+        p['jsCode']=code.replace(old,"const __runMode='manual';",1)
+    elif name=='ÖN FİLTRE + TEKRAR KONTROLÜ' and isinstance(code,str):
+        old="const found=[];\nlet ok=0,failed=0,discovered=0,seen=0;"
+        new="const manualForce=String(cfg.run_mode||'')==='manual';\nconst found=[];\nlet ok=0,failed=0,discovered=0,seen=0;"
+        if old not in code:
+            raise SystemExit('prefilter manual anchor missing')
+        code=code.replace(old,new,1)
+        old2="if(store.directSeen[directKey]||keys.some(k=>store.publishedNews[k])){seen++;continue;}"
+        new2="if(!manualForce && (store.directSeen[directKey]||keys.some(k=>store.publishedNews[k]))){seen++;continue;}"
+        if old2 not in code:
+            raise SystemExit('prefilter duplicate anchor missing')
+        p['jsCode']=code.replace(old2,new2,1)
+    elif name=='SON DUPLICATE KONTROLÜ' and isinstance(code,str):
+        old="const isDup=keys.some(k=>store.publishedNews[k]||store.inflightNews[k]);"
+        new="const manualForce=String(j.run_mode||'')==='manual';\n  const isDup=manualForce?false:keys.some(k=>store.publishedNews[k]||store.inflightNews[k]);"
+        if old not in code:
+            raise SystemExit('final duplicate anchor missing')
+        p['jsCode']=code.replace(old,new,1)
+
+dst.write_text(json.dumps(w,ensure_ascii=False,indent=2),encoding='utf-8')
+print('EG365_MANUAL_BOOT: manual_workflow_built')
+PY
+then
+  echo "EG365_MANUAL_BOOT_ERROR: build_failed"
+  exit 1
+fi
+
+if ! timeout 150 n8n import:workflow --input=/tmp/EG365_CLOUD_MANUAL_V128.json >/tmp/eg365-manual-import.log 2>&1; then
+  echo "EG365_MANUAL_BOOT_ERROR: import_failed_or_timed_out"
+  tail -60 /tmp/eg365-manual-import.log || true
+  exit 1
+fi
+echo "EG365_MANUAL_BOOT: workflow_import_ok"
+
 SMOKE_ID="EG365CLOUDSMOKEV128"
 if [ "${CLOUD_SMOKE_TEST:-false}" = "true" ]; then
   echo "EG365_SMOKE: preparing_dry_run_workflow"
@@ -463,7 +520,7 @@ import os,sqlite3
 db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
 con=sqlite3.connect(db,timeout=20)
 try:
-    con.execute("UPDATE workflow_entity SET active=0 WHERE id IN ('EG365CLOUDRENDERV128','EG365CLOUDSMOKEV128')")
+    con.execute("UPDATE workflow_entity SET active=0 WHERE id IN ('EG365CLOUDRENDERV128','EG365CLOUDSMOKEV128','EG365CLOUDMANUALV128')")
     con.commit()
     print("EG365_BOOT: db_schedules_disabled")
 finally:
@@ -729,7 +786,24 @@ MPID=$!
       else
         rm -f /tmp/eg365-run-now.trigger
         echo "EG365_MANUAL: trigger_received"
-        run_prod || true
+        echo "EG365_MANUAL: execution_start"
+        if timeout 480 n8n execute --id="$MANUAL_ID" >/tmp/eg365-manual.log 2>&1; then
+          echo "EG365_MANUAL: execution_ok"
+        else
+          rc=$?
+          echo "EG365_MANUAL_ERROR: execution_failed rc=$rc"
+          tail -60 /tmp/eg365-manual.log | sed -E 's/(Bearer )[A-Za-z0-9._-]+/\1[REDACTED]/g; s/([A-Za-z0-9_]*(token|api[_ -]?key)[A-Za-z0-9_]*["'"']?[=:]["'"']?)[^ ,}"'"']+/\1[REDACTED]/Ig' || true
+        fi
+        /opt/venv/bin/python - <<'PY' || true
+import os,sqlite3
+db=os.environ.get('N8N_DB_PATH','/root/.n8n/database.sqlite')
+con=sqlite3.connect(db,timeout=20)
+try:
+    row=con.execute("SELECT id,status,startedAt,stoppedAt FROM execution_entity WHERE workflowId=? ORDER BY id DESC LIMIT 1",('EG365CLOUDMANUALV128',)).fetchone()
+    print("EG365_MANUAL_VERIFY: latest="+repr(row),flush=True)
+finally:
+    con.close()
+PY
         echo "EG365_MANUAL: trigger_complete"
       fi
     fi
