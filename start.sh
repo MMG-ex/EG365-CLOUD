@@ -741,9 +741,9 @@ try:
       'instagram_create':channel('INSTAGRAM CONTAINER'),
       'instagram_publish':channel('INSTAGRAM YAYINLA'),
       'instagram_verify':channel('INSTAGRAM YAYIN DOĞRULA'),
-      'threads_create':channel('THREADS CONTAINER'),
-      'threads_publish':channel('THREADS YAYINLA'),
-      'threads_verify':channel('THREADS YAYIN DOĞRULA'),
+      'threads_create':channel('THREADS CONTAINER FIX'),
+      'threads_publish':channel('THREADS YAYINLA FIX'),
+      'threads_verify':channel('THREADS YAYIN KONTROL'),
       'facebook':channel('FACEBOOK YAYINLA'),
       'memory':{'ran':last_json('YAYIN HAFIZASINA KAYDET') is not None}
     }
@@ -891,9 +891,9 @@ try:
       'instagram_create':channel('INSTAGRAM CONTAINER'),
       'instagram_publish':channel('INSTAGRAM YAYINLA'),
       'instagram_verify':channel('INSTAGRAM YAYIN DOĞRULA'),
-      'threads_create':channel('THREADS CONTAINER'),
-      'threads_publish':channel('THREADS YAYINLA'),
-      'threads_verify':channel('THREADS YAYIN DOĞRULA'),
+      'threads_create':channel('THREADS CONTAINER FIX'),
+      'threads_publish':channel('THREADS YAYINLA FIX'),
+      'threads_verify':channel('THREADS YAYIN KONTROL'),
       'facebook':channel('FACEBOOK YAYINLA'),
       'memory':{'ran':last_json('YAYIN HAFIZASINA KAYDET') is not None}
     }
