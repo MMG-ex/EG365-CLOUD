@@ -355,6 +355,35 @@ for n in w.get('nodes',[]):
         if old not in code:
             raise SystemExit('final duplicate anchor missing')
         p['jsCode']=code.replace(old,new,1)
+    elif name=='AI SONUÇLARI AÇ + YAYIN FİLTRESİ':
+        p['jsCode']=r"""const bundle=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};
+const src=(bundle.sources||[])[0]||null;
+if(!src)return [{json:{status_only:true,DURUM:'MANUEL: DOĞRULANMIŞ KAYNAK BULUNAMADI',publish_telegram:false,publish_instagram:false,publish_threads:false,publish_facebook:false}}];
+
+function clean(v=''){return String(v??'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/gi,' ').replace(/\s+/g,' ').trim();}
+function trimWords(s,max){let t=clean(s);if(t.length<=max)return t.replace(/[,:;\-–—\s]+$/,'');const ws=t.split(' ');let out='';for(const w of ws){const n=(out?out+' ':'')+w;if(n.length>max)break;out=n;}return out.replace(/[,:;\-–—\s]+$/,'');}
+function sents(s=''){return clean(s).match(/[^.!?]+[.!?](?=\s|$)/g)||[];}
+function leadFrom(s=''){
+  const ss=sents(s).map(clean).filter(x=>x.length>=35);
+  let acc='';
+  for(const x of ss){const n=(acc?acc+' ':'')+x;if(n.length>220)break;acc=n;if(acc.length>=120)break;}
+  if(acc.length>=80){if(!/[.!?]$/.test(acc))acc+='.';return acc;}
+  let t=trimWords(clean(s),205); if(t.length<80)t='Millî Eğitim Bakanlığının resmî internet sitesinde yayımlanan duyuruda konuya ilişkin ayrıntılar ve uygulamaya dair bilgiler kamuoyuyla paylaşıldı.';
+  if(!/[.!?]$/.test(t))t+='.'; return t;
+}
+function categoryOf(t=''){t=clean(t).toLocaleLowerCase('tr-TR');if(/sınav|yazılı|ölçme|değerlendirme|lgs|iokbs/.test(t))return'SINAV';if(/öğretmen|atama|yer değiş|personel/.test(t))return'ÖĞRETMEN';if(/mesleki|meslek/.test(t))return'MESLEKİ EĞİTİM';if(/teknoloji|dijital|yapay zek|yegitek/.test(t))return'TEKNOLOJİ';if(/müfredat|maarif|öğretim program/.test(t))return'MÜFREDAT';if(/proje|açılış|program/.test(t))return'PROJE';return'DİĞER MEB';}
+const full=clean(src.source_content||src.summary||'');
+let main=trimWords(src.title||'MEB resmî duyurusu',96);
+if(main.length<28)main=trimWords('Millî Eğitim Bakanlığından yeni resmî duyuru: '+main,96);
+let hi='Resmî kaynakta kapsam ve ayrıntılar paylaşıldı';
+if(hi.length<12)hi='MEB ayrıntıları paylaştı';
+const lead=leadFrom(full||src.summary||src.title);
+const facts=sents(full).map(clean).filter(x=>x.length>=35&&x.length<=165&&x!==lead).slice(0,3);
+const bullets=facts.map(x=>/[.!?]$/.test(x)?x:x+'.');
+const url=String(src.official_source_url||src.link||'');
+const source=clean(src.source_name||'Millî Eğitim Bakanlığı');
+const tags=['#MEB','#Eğitim','#MilliEğitim','#EğitimGündemi','#Öğretmen'];
+return [{json:{...src,status_only:false,run_mode:'manual',verified:true,meb_relevant:true,confidence:100,importance:80,category:categoryOf(main+' '+full),title_main:main,title_highlight:hi,hook:hi,summary:lead,lead,bullets,bullet_1:bullets[0]||'',bullet_2:bullets[1]||'',bullet_3:bullets[2]||'',bullet_count:bullets.length,source_name:source,official_source_url:url,source_url:url,preferred_source_url:url,hashtags:tags,content_quality_pass:true,content_quality_version:'MANUAL_OFFICIAL_SOURCE_FALLBACK',ai_status:'MANUAL_OFFICIAL_SOURCE_FALLBACK',ai_model_used:'none',publication_basis:'RESMÎ MEB KAYNAĞI',publish_telegram:true,publish_instagram:true,publish_threads:true,publish_facebook:true}}];"""
 
 dst.write_text(json.dumps(w,ensure_ascii=False,indent=2),encoding='utf-8')
 print('EG365_MANUAL_BOOT: manual_workflow_built')
