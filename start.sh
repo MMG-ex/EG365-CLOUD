@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-PUBLIC_PORT="${PORT:-10000}"
+export PUBLIC_PORT="${PORT:-10000}"
 export N8N_PORT="${N8N_PORT:-5678}"
 export N8N_LISTEN_ADDRESS="${N8N_LISTEN_ADDRESS:-127.0.0.1}"
 export N8N_PROTOCOL="http"
@@ -256,8 +256,15 @@ for n in w.get('nodes',[]):
         for x in (((params.get('queryParameters') or {}).get('parameters')) or []):
             if x.get('name')=='text' and 'MMG' not in str(x.get('value') or ''):
                 x['value']="={{ ($json.threads_caption || '') + '\\n\\nMMG\\n@mmuratg' }}"
+# Align every container-internal renderer call with Render's actual listening port.
+port=(os.environ.get('PUBLIC_PORT') or '10000').strip()
+raw=json.dumps(w,ensure_ascii=False)
+raw=raw.replace('http://127.0.0.1:8787',f'http://127.0.0.1:{port}')
+raw=raw.replace('http://localhost:8787',f'http://127.0.0.1:{port}')
+w=json.loads(raw)
 p.write_text(json.dumps(w,ensure_ascii=False,indent=2),encoding='utf-8')
 print('EG365_BOOT: temporary_mmg_marker_enabled',flush=True)
+print('EG365_BOOT: internal_renderer_port='+port,flush=True)
 PY
 
 WF_SHA="$(sha256sum /opt/workflow/EG365_CLOUD_RENDER_V128.json | awk '{print $1}')"
