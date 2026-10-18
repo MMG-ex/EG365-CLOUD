@@ -2333,11 +2333,6 @@
             "node": "CONFIG",
             "type": "main",
             "index": 0
-          },
-          {
-            "node": "X CONFIG",
-            "type": "main",
-            "index": 0
           }
         ]
       ]
@@ -2774,17 +2769,6 @@
         [
           {
             "node": "X YAYIN KONTROL1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "X CONFIG": {
-      "main": [
-        [
-          {
-            "node": "CONFIG",
             "type": "main",
             "index": 0
           }
