@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "jsCode": "const __runMode=String($json?.run_mode||'normal');\nreturn [{json: {\n  run_mode: __runMode,\n  backfill_hours: 120,\n  backfill_max_per_run: 1,\n  build_tag: 'V122_EDITORIAL_EXPLICIT_TITLE_SPLIT',\n  dry_run: false,\n  live_test_mode: true,\n  live_test_max_posts: 1,\n  crosspost_all_verified: true, // Seçilen doğrulanmış haber 4 platforma birlikte gider.\n  force_best_verified: false, // AI publish bayrağı vermese bile güvenli/doğrulanmış en iyi haberi seçer.\n  fail_open_source_reporting: false, // Tüm AI/OmniRoute sağlayıcıları düşerse kaynakta yazanı, açık SOURCE_REPORTED etiketiyle yayınlar.\n  fallback_min_confidence: 70,\n\n  openai_api_key: '__OPENAI_API_KEY__',\n  openai_model: 'gpt-5.4-mini',\n  openai_model_pool: ['gpt-5.4-mini','gpt-5.6-luna','gpt-5.6-sol','gpt-5.6-terra','gpt-6-astra'],\n  openai_router_enabled: true,\n\n  // OmniRoute: n8n Docker ise host.docker.internal; n8n native ise localhost otomatik yedek.\n  omniroute_enabled: true,\n  omniroute_base_url_docker: 'http://host.docker.internal:20129/v1',\n  omniroute_base_url_local: 'http://127.0.0.1:20129/v1',\n  // OmniRoute REQUIRE_API_KEY=false ise any-string yeterlidir. Endpoint key kullanıyorsan burayı değiştir.\n  omniroute_api_key: 'any-string',\n  // auto/offline: yüksek kullanılabilirlik / kotası en rahat bağlı sağlayıcı.\n  omniroute_model: 'ddgw/mistral-small-2603',\n  omniroute_backup_model: 'ddgw/mistral-small-2603',\n  omniroute_timeout_ms: 120000,\n  openai_search_context: 'low',\n  ai_max_output_tokens: 3000,\n  ai_summary_chars: 500,\n\n  telegram_bot_token: '__TELEGRAM_BOT_TOKEN__',\n  telegram_chat_id: '__TELEGRAM_CHAT_ID__',\n  telegram_public_url: '__TELEGRAM_PUBLIC_URL__',\n\n  instagram_user_id: '__INSTAGRAM_USER_ID__',\n  instagram_access_token: '__INSTAGRAM_ACCESS_TOKEN__',\n  instagram_api_version: 'v23.0',\n\n  threads_user_id: 'me',\n  threads_access_token: '__THREADS_ACCESS_TOKEN__',\n  threads_api_version: 'v1.0',\n\n  facebook_user_access_token: '',\n  facebook_page_id: '__FACEBOOK_PAGE_ID__',\n  facebook_page_access_token: '__FACEBOOK_PAGE_ACCESS_TOKEN__',\n  facebook_api_version: 'v26.0',\n  public_image_host: 'catbox',\n  public_image_ttl: '72h',\n\n  lookback_hours: 36,\n  first_run_hours: 48,\n  min_confidence_telegram: 68,\n  min_confidence_instagram: 78,\n  min_importance_instagram: 55,\n  seen_keep_days: 21,\n  max_items_per_run: 1,\n  use_static_template: true,\n  max_instagram_per_run: 1,\n  max_telegram_per_run: 1,\n  max_threads_per_run: 1,\n  max_facebook_per_run: 1,\n  direct_meb_hosts: [\"www.meb.gov.tr\", \"personel.meb.gov.tr\", \"tegm.meb.gov.tr\", \"ogm.meb.gov.tr\", \"odsgm.meb.gov.tr\", \"orgm.meb.gov.tr\", \"yegitek.meb.gov.tr\", \"mtegm.meb.gov.tr\", \"ookgm.meb.gov.tr\", \"hbogm.meb.gov.tr\", \"oygm.meb.gov.tr\", \"dogm.meb.gov.tr\", \"yyegm.meb.gov.tr\", \"abdigm.meb.gov.tr\", \"ttkb.meb.gov.tr\", \"akademi.meb.gov.tr\", \"dhgm.meb.gov.tr\", \"sgb.meb.gov.tr\", \"hhgm.meb.gov.tr\", \"iegm.meb.gov.tr\"],\n  direct_meb_source_names: {\"www.meb.gov.tr\": \"Millî Eğitim Bakanlığı\", \"personel.meb.gov.tr\": \"MEB Personel Genel Müdürlüğü\", \"tegm.meb.gov.tr\": \"Temel Eğitim Genel Müdürlüğü\", \"ogm.meb.gov.tr\": \"Ortaöğretim Genel Müdürlüğü\", \"odsgm.meb.gov.tr\": \"Ölçme, Değerlendirme ve Sınav Hizmetleri Genel Müdürlüğü\", \"orgm.meb.gov.tr\": \"Özel Eğitim ve Rehberlik Hizmetleri Genel Müdürlüğü\", \"yegitek.meb.gov.tr\": \"Yenilik ve Eğitim Teknolojileri Genel Müdürlüğü\", \"mtegm.meb.gov.tr\": \"Meslekî ve Teknik Eğitim Genel Müdürlüğü\", \"ookgm.meb.gov.tr\": \"Özel Öğretim Kurumları Genel Müdürlüğü\", \"hbogm.meb.gov.tr\": \"Hayat Boyu Öğrenme Genel Müdürlüğü\", \"oygm.meb.gov.tr\": \"Öğretmen Yetiştirme ve Geliştirme Genel Müdürlüğü\", \"dogm.meb.gov.tr\": \"Din Öğretimi Genel Müdürlüğü\", \"yyegm.meb.gov.tr\": \"Yükseköğretim ve Yurt Dışı Eğitim Genel Müdürlüğü\", \"abdigm.meb.gov.tr\": \"Avrupa Birliği ve Dış İlişkiler Genel Müdürlüğü\", \"ttkb.meb.gov.tr\": \"Talim ve Terbiye Kurulu Başkanlığı\", \"akademi.meb.gov.tr\": \"Millî Eğitim Akademisi\", \"dhgm.meb.gov.tr\": \"Destek Hizmetleri Genel Müdürlüğü\", \"sgb.meb.gov.tr\": \"Strateji Geliştirme Başkanlığı\", \"hhgm.meb.gov.tr\": \"Hukuk Hizmetleri Genel Müdürlüğü\", \"iegm.meb.gov.tr\": \"İnşaat ve Emlak Genel Müdürlüğü\"},\n  direct_recent_hours: 168,\n}}];"
+        "jsCode": "const __runMode=String($json?.run_mode||'normal');\nreturn [{json: {\n  run_mode: __runMode,\n  backfill_hours: 120,\n  backfill_max_per_run: 1,\n  build_tag: 'V122_EDITORIAL_EXPLICIT_TITLE_SPLIT',\n  dry_run: false,\n  live_test_mode: true,\n  live_test_max_posts: 1,\n  crosspost_all_verified: true, // Seçilen doğrulanmış haber 4 platforma birlikte gider.\n  force_best_verified: false, // AI publish bayrağı vermese bile güvenli/doğrulanmış en iyi haberi seçer.\n  fail_open_source_reporting: false, // Tüm AI/OmniRoute sağlayıcıları düşerse kaynakta yazanı, açık SOURCE_REPORTED etiketiyle yayınlar.\n  fallback_min_confidence: 70,\n\n  openai_api_key: '__OPENAI_API_KEY__',\n  openai_model: 'gpt-5.4-mini',\n  openai_model_pool: ['gpt-5.4-mini','gpt-5.6-luna','gpt-5.6-sol','gpt-5.6-terra','gpt-6-astra'],\n  openai_router_enabled: true,\n  nvidia_free_enabled: true,\n  nvidia_api_key: '__NVIDIA_API_KEY__',\n  nvidia_base_url: 'https://integrate.api.nvidia.com/v1',\n  nvidia_model: 'meta/muse-glimmer-30b',\n  nvidia_timeout_ms: 60000,\n\n  // OmniRoute: n8n Docker ise host.docker.internal; n8n native ise localhost otomatik yedek.\n  omniroute_enabled: true,\n  omniroute_base_url_docker: 'http://host.docker.internal:20129/v1',\n  omniroute_base_url_local: 'http://127.0.0.1:20129/v1',\n  // OmniRoute REQUIRE_API_KEY=false ise any-string yeterlidir. Endpoint key kullanıyorsan burayı değiştir.\n  omniroute_api_key: 'any-string',\n  // auto/offline: yüksek kullanılabilirlik / kotası en rahat bağlı sağlayıcı.\n  omniroute_model: 'ddgw/mistral-small-2603',\n  omniroute_backup_model: 'ddgw/mistral-small-2603',\n  omniroute_timeout_ms: 120000,\n  openai_search_context: 'low',\n  ai_max_output_tokens: 3000,\n  ai_summary_chars: 500,\n\n  telegram_bot_token: '__TELEGRAM_BOT_TOKEN__',\n  telegram_chat_id: '__TELEGRAM_CHAT_ID__',\n  telegram_public_url: '__TELEGRAM_PUBLIC_URL__',\n\n  instagram_user_id: '__INSTAGRAM_USER_ID__',\n  instagram_access_token: '__INSTAGRAM_ACCESS_TOKEN__',\n  instagram_api_version: 'v23.0',\n\n  threads_user_id: 'me',\n  threads_access_token: '__THREADS_ACCESS_TOKEN__',\n  threads_api_version: 'v1.0',\n\n  facebook_user_access_token: '',\n  facebook_page_id: '__FACEBOOK_PAGE_ID__',\n  facebook_page_access_token: '__FACEBOOK_PAGE_ACCESS_TOKEN__',\n  facebook_api_version: 'v26.0',\n  public_image_host: 'catbox',\n  public_image_ttl: '72h',\n\n  lookback_hours: 36,\n  first_run_hours: 48,\n  min_confidence_telegram: 68,\n  min_confidence_instagram: 78,\n  min_importance_instagram: 55,\n  seen_keep_days: 21,\n  max_items_per_run: 1,\n  use_static_template: true,\n  max_instagram_per_run: 1,\n  max_telegram_per_run: 1,\n  max_threads_per_run: 1,\n  max_facebook_per_run: 1,\n  direct_meb_hosts: [\"www.meb.gov.tr\", \"personel.meb.gov.tr\", \"tegm.meb.gov.tr\", \"ogm.meb.gov.tr\", \"odsgm.meb.gov.tr\", \"orgm.meb.gov.tr\", \"yegitek.meb.gov.tr\", \"mtegm.meb.gov.tr\", \"ookgm.meb.gov.tr\", \"hbogm.meb.gov.tr\", \"oygm.meb.gov.tr\", \"dogm.meb.gov.tr\", \"yyegm.meb.gov.tr\", \"abdigm.meb.gov.tr\", \"ttkb.meb.gov.tr\", \"akademi.meb.gov.tr\", \"dhgm.meb.gov.tr\", \"sgb.meb.gov.tr\", \"hhgm.meb.gov.tr\", \"iegm.meb.gov.tr\"],\n  direct_meb_source_names: {\"www.meb.gov.tr\": \"Millî Eğitim Bakanlığı\", \"personel.meb.gov.tr\": \"MEB Personel Genel Müdürlüğü\", \"tegm.meb.gov.tr\": \"Temel Eğitim Genel Müdürlüğü\", \"ogm.meb.gov.tr\": \"Ortaöğretim Genel Müdürlüğü\", \"odsgm.meb.gov.tr\": \"Ölçme, Değerlendirme ve Sınav Hizmetleri Genel Müdürlüğü\", \"orgm.meb.gov.tr\": \"Özel Eğitim ve Rehberlik Hizmetleri Genel Müdürlüğü\", \"yegitek.meb.gov.tr\": \"Yenilik ve Eğitim Teknolojileri Genel Müdürlüğü\", \"mtegm.meb.gov.tr\": \"Meslekî ve Teknik Eğitim Genel Müdürlüğü\", \"ookgm.meb.gov.tr\": \"Özel Öğretim Kurumları Genel Müdürlüğü\", \"hbogm.meb.gov.tr\": \"Hayat Boyu Öğrenme Genel Müdürlüğü\", \"oygm.meb.gov.tr\": \"Öğretmen Yetiştirme ve Geliştirme Genel Müdürlüğü\", \"dogm.meb.gov.tr\": \"Din Öğretimi Genel Müdürlüğü\", \"yyegm.meb.gov.tr\": \"Yükseköğretim ve Yurt Dışı Eğitim Genel Müdürlüğü\", \"abdigm.meb.gov.tr\": \"Avrupa Birliği ve Dış İlişkiler Genel Müdürlüğü\", \"ttkb.meb.gov.tr\": \"Talim ve Terbiye Kurulu Başkanlığı\", \"akademi.meb.gov.tr\": \"Millî Eğitim Akademisi\", \"dhgm.meb.gov.tr\": \"Destek Hizmetleri Genel Müdürlüğü\", \"sgb.meb.gov.tr\": \"Strateji Geliştirme Başkanlığı\", \"hhgm.meb.gov.tr\": \"Hukuk Hizmetleri Genel Müdürlüğü\", \"iegm.meb.gov.tr\": \"İnşaat ve Emlak Genel Müdürlüğü\"},\n  direct_recent_hours: 168,\n}}];"
       },
       "id": "71d202fb-3ce3-4787-9312-14ce887f8912",
       "name": "CONFIG",
@@ -636,10 +636,10 @@
     },
     {
       "parameters": {
-        "jsCode": "function extractText(r){\n  if(!r)return'';\n  if(typeof r.output_text==='string'&&r.output_text.trim())return r.output_text.trim();\n  if(Array.isArray(r.output)){\n    for(const o of r.output||[])for(const c of o.content||[])if(c.type==='output_text'&&c.text)return String(c.text).trim();\n  }\n  if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();\n  return'';\n}\nfunction semanticOk(r){\n  if(!r||r.error)return false;\n  let txt=extractText(r);\n  if(!txt)return false;\n  txt=txt.replace(/^```(?:json)?\\s*/i,'').replace(/\\s*```$/,'').trim();\n  let p; try{p=JSON.parse(txt);}catch(e){return false;}\n  if(!p||!Array.isArray(p.results)||p.results.length<1)return false;\n  return p.results.some(x=>x&&typeof x==='object'&&Number.isFinite(Number(x.item_id)));\n}\nconst r=$input.first()?.json||{};\nif(semanticOk(r)) return [];\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json;\nreturn [{json:{...b,_omniroute_error_2:r.error||{message:'Local OmniRoute semantik olarak geçerli yanıt üretmedi'},_router_fallback:'DIRECT_OPENAI_V7',_semantic_failover:true}}];"
+        "jsCode": "const cfg=$('CONFIG').first().json;\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};\nif(cfg.nvidia_free_enabled!==true || !String(cfg.nvidia_api_key||'').trim() || !b.openai_body)return [{json:{...b,_nvidia_skip:true}}];\nconst prompt=String(b.openai_body.input||'')+'\\n\\nSADECE geçerli JSON döndür. Markdown/kod bloğu/açıklama kullanma. Biçim: {\"results\":[...]}';\nreturn [{json:{...b,nvidia_body:{\n model:cfg.nvidia_model||'meta/muse-glimmer-30b',\n messages:[{role:'user',content:prompt}],\n temperature:0.1,\n max_tokens:Math.max(2200,Number(cfg.ai_max_output_tokens||3000)),\n stream:false\n},_nvidia_api_mode:'CHAT_COMPLETIONS'}}];"
       },
       "id": "5ee634aa-6444-4135-be23-968002f47789",
-      "name": "OMNIROUTE 2 HATA - V7 OPENAI YEDEK",
+      "name": "NVIDIA FREE HAZIRLA",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -1893,6 +1893,72 @@
         528,
         7472
       ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('CONFIG').first().json.nvidia_base_url + '/chat/completions' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('CONFIG').first().json.nvidia_api_key }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.nvidia_body) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": "={{ $('CONFIG').first().json.nvidia_timeout_ms || 60000 }}"
+        }
+      },
+      "id": "97c4c9cf-3d2f-4e36-a728-4c6f4a5a7c01",
+      "name": "NVIDIA FREE - CHAT COMPLETIONS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4304,
+        7888
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){if(!r)return'';if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();return String(r.output_text||'').trim();}\nfunction semanticOk(r){if(!r||r.error)return false;let t=extractText(r).replace(/^\\`\\`\\`(?:json)?\\s*/i,'').replace(/\\s*\\`\\`\\`$/,'').trim();if(!t)return false;try{const p=JSON.parse(t);return !!(p&&Array.isArray(p.results)&&p.results.length&&p.results.some(x=>x&&Number.isFinite(Number(x.item_id))));}catch(e){return false;}}\nconst r=$input.first()?.json||{}; const txt=extractText(r);\nif(semanticOk(r))return [{json:{...r,output_text:txt,_router_model:'nvidia:meta/muse-glimmer-30b',_router_attempt:'NVIDIA_FREE',_provider_failover:true,_semantic_valid:true}}];\nreturn [];"
+      },
+      "id": "5c9911e3-8f47-43f3-bb2f-d1c9d1d0a201",
+      "name": "NVIDIA FREE BAŞARILI - DEVAM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4544,
+        7552
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractText(r){if(!r)return'';if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();return String(r.output_text||'').trim();}\nfunction semanticOk(r){if(!r||r.error)return false;let t=extractText(r).replace(/^\\`\\`\\`(?:json)?\\s*/i,'').replace(/\\s*\\`\\`\\`$/,'').trim();if(!t)return false;try{const p=JSON.parse(t);return !!(p&&Array.isArray(p.results)&&p.results.length&&p.results.some(x=>x&&Number.isFinite(Number(x.item_id))));}catch(e){return false;}}\nconst r=$input.first()?.json||{}; if(semanticOk(r))return [];\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};\nreturn [{json:{...b,_nvidia_error:r.error||r.detail||{message:'NVIDIA_FREE_SEMANTIC_INVALID'},_router_fallback:'DIRECT_OPENAI_V7',_semantic_failover:true}}];"
+      },
+      "id": "38d6dff9-f60f-4a3d-9c19-276b8a1e4501",
+      "name": "NVIDIA FREE HATA - OPENAI YEDEK",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4560,
+        8048
+      ]
     }
   ],
   "pinData": {},
@@ -2200,7 +2266,7 @@
       "main": [
         [
           {
-            "node": "OMNIROUTE 1 - DOCKER HOST - PROVIDER FAILOVER",
+            "node": "NVIDIA FREE HAZIRLA",
             "type": "main",
             "index": 0
           }
@@ -2266,17 +2332,6 @@
         [
           {
             "node": "AI SONUÇLARI AÇ + YAYIN FİLTRESİ",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OMNIROUTE 2 HATA - V7 OPENAI YEDEK": {
-      "main": [
-        [
-          {
-            "node": "CHATGPT 1/5 - GPT-5.4-MINI",
             "type": "main",
             "index": 0
           }
@@ -2778,6 +2833,55 @@
     "ARSIV 6 SAATLIK KONTROL": {
       "main": [
         []
+      ]
+    },
+    "NVIDIA FREE HAZIRLA": {
+      "main": [
+        [
+          {
+            "node": "NVIDIA FREE - CHAT COMPLETIONS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NVIDIA FREE - CHAT COMPLETIONS": {
+      "main": [
+        [
+          {
+            "node": "NVIDIA FREE BAŞARILI - DEVAM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "NVIDIA FREE HATA - OPENAI YEDEK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NVIDIA FREE BAŞARILI - DEVAM": {
+      "main": [
+        [
+          {
+            "node": "AI SONUÇLARI AÇ + YAYIN FİLTRESİ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NVIDIA FREE HATA - OPENAI YEDEK": {
+      "main": [
+        [
+          {
+            "node": "CHATGPT 1/5 - GPT-5.4-MINI",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
