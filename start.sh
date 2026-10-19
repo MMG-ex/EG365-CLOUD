@@ -455,6 +455,27 @@ if ! timeout 150 n8n import:workflow --input=/tmp/EG365_CLOUD_MANUAL_V128.json >
 fi
 echo "EG365_MANUAL_BOOT: workflow_import_ok"
 
+echo "EG365_BOOT: starting_public_renderer"
+/opt/venv/bin/uvicorn app:app --app-dir /opt/renderer --host 0.0.0.0 --port "$PUBLIC_PORT" >/tmp/renderer.log 2>&1 &
+RPID=$!
+
+i=0
+until curl -fsS "http://127.0.0.1:$PUBLIC_PORT/health" >/dev/null 2>&1; do
+  i=$((i+1))
+  if ! kill -0 "$RPID" 2>/dev/null; then
+    echo "EG365_BOOT_ERROR: renderer_exited"
+    tail -80 /tmp/renderer.log || true
+    exit 1
+  fi
+  if [ "$i" -gt 40 ]; then
+    echo "EG365_BOOT_ERROR: renderer_health_timeout"
+    tail -80 /tmp/renderer.log || true
+    exit 1
+  fi
+  sleep 1
+done
+echo "EG365_BOOT: renderer_ready"
+
 SMOKE_ID="EG365CLOUDSMOKEV128"
 if [ "${CLOUD_SMOKE_TEST:-false}" = "true" ]; then
   echo "EG365_SMOKE: preparing_dry_run_workflow"
@@ -618,26 +639,10 @@ finally:
     con.close()
 PY
 
-echo "EG365_BOOT: starting_public_renderer"
-/opt/venv/bin/uvicorn app:app --app-dir /opt/renderer --host 0.0.0.0 --port "$PUBLIC_PORT" >/tmp/renderer.log 2>&1 &
-RPID=$!
-
-i=0
-until curl -fsS "http://127.0.0.1:$PUBLIC_PORT/health" >/dev/null 2>&1; do
-  i=$((i+1))
-  if ! kill -0 "$RPID" 2>/dev/null; then
-    echo "EG365_BOOT_ERROR: renderer_exited"
-    tail -80 /tmp/renderer.log || true
-    exit 1
-  fi
-  if [ "$i" -gt 40 ]; then
-    echo "EG365_BOOT_ERROR: renderer_health_timeout"
-    tail -80 /tmp/renderer.log || true
-    exit 1
-  fi
-  sleep 1
-done
-echo "EG365_BOOT: renderer_ready"
+if [ -z "${RPID:-}" ] || ! kill -0 "$RPID" 2>/dev/null; then
+  echo "EG365_BOOT_ERROR: renderer_not_alive_after_smoke"
+  exit 1
+fi
 echo "EG365_BOOT: cloud_ready"
 
 audit_last_prod() {
