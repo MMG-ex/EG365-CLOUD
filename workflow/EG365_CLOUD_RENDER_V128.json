@@ -636,7 +636,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cfg=$('CONFIG').first().json;\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};\nconst src=(b.sources||[])[0]||null;\nif(cfg.nvidia_free_enabled!==true || !src)return [{json:{...b,_free_ai_skip:true}}];\nconst iid=Number(src.item_id||0);\nconst sourceName=String(src.source_name||'Millî Eğitim Bakanlığı');\nconst sourceUrl=String(src.official_source_url||src.link||'');\nconst sourceTitle=String(src.title||'').replace(/\\s+/g,' ').trim();\nconst sourceArticle=String(src.source_content||src.summary||'').replace(/\\s+/g,' ').trim().slice(0,6000);\nconst prompt=[\n'EĞİTİM GÜNDEM 365 için profesyonel Türkçe haber editörüsün.',\n'SADECE SOURCE_ARTICLE içinde açıkça bulunan doğrulanmış gerçekleri kullan. Yeni bilgi, kişi, kurum, sayı, tarih, hedef, etkinlik türü veya sonuç UYDURMA.',\n'Kaynakta geçmeyen atölye, seri, kampanya, proje, hedef, sonuç gibi yeni olay/isimler EKLEME.',\n'HOOK da olgusal olacak; slogan, metafor, yorum veya temenni YAZMA.',\n'Kaynak başlığını KOPYALAMA; kelime sırasını ve cümle iskeletini değiştir.',\n'YALNIZ geçerli JSON döndür. Markdown veya açıklama yazma.',\n'Biçim tam olarak: {\"results\":[{\"item_id\":'+iid+',\"importance\":75,\"category\":\"DİĞER MEB\",\"title_main\":\"...\",\"title_highlight\":\"...\",\"hook\":\"...\",\"summary\":\"...\",\"bullet_1\":\"...\",\"bullet_2\":\"\",\"bullet_3\":\"\",\"source_name\":\"'+sourceName.replace(/\"/g,'')+'\",\"official_source_url\":\"'+sourceUrl.replace(/\"/g,'')+'\",\"hashtags\":[\"#MEB\",\"#Eğitim\",\"#MilliEğitim\",\"#EğitimGündemi\",\"#Öğretmen\"]}]}',\n'Kurallar: title_main 28-60 karakter ve özgün; title_highlight 18-55 karakter ve ikinci bir açı; summary 120-190 karakter.',\n'bullet_1..3 yalnız SOURCE_ARTICLE içindeki ayrı gerçeklerin kısa yeniden yazımı olacak. Bir maddeyi kaynak cümlesiyle doğrulayamıyorsan o alanı boş string yap.',\n'category yalnız: MÜFREDAT, ÖĞRETMEN, ÖĞRENCİ, SINAV, ATAMA, YÖNETİCİ, PROJE, TEKNOLOJİ, MESLEKİ EĞİTİM, ÖZEL EĞİTİM, MEVZUAT, DİĞER MEB.',\n'ITEM_ID='+iid,\n'SOURCE_NAME='+sourceName,\n'OFFICIAL_URL='+sourceUrl,\n'SOURCE_TITLE='+sourceTitle,\n'SOURCE_ARTICLE='+sourceArticle\n].join('\\n');\nreturn [{json:{...b,nvidia_body:{\n model:cfg.nvidia_model||'openai',\n messages:[{role:'user',content:prompt}],\n jsonMode:true,\n stream:false\n},_free_ai_provider:'pollinations-anonymous',_free_ai_mode:'NATIVE_JSON_SINGLE_SOURCE'}}];"
+        "jsCode": "const cfg=$('CONFIG').first().json;\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};\nconst src=(b.sources||[])[0]||null;\nif(!src)return [{json:{...b,_free_ai_skip:true}}];\nconst iid=Number(src.item_id||0);\nconst sourceName=String(src.source_name||'Millî Eğitim Bakanlığı');\nconst sourceUrl=String(src.official_source_url||src.link||'');\nconst sourceTitle=String(src.title||'').replace(/\\s+/g,' ').trim();\nconst sourceArticle=String(src.source_content||src.summary||'').replace(/\\s+/g,' ').trim().slice(0,6000);\nconst prompt=[\n'EĞİTİM GÜNDEM 365 için profesyonel Türkçe haber editörüsün.',\n'SADECE SOURCE_ARTICLE içinde açıkça bulunan doğrulanmış gerçekleri kullan. Yeni bilgi, kişi, kurum, sayı, tarih, hedef, etkinlik türü veya sonuç UYDURMA.',\n'Kaynakta geçmeyen atölye, seri, kampanya, proje, hedef veya sonuç gibi yeni olay/isimler EKLEME.',\n'HOOK olgusal olacak; slogan, metafor, yorum veya temenni YAZMA.',\n'Kaynak başlığını KOPYALAMA; kelime sırasını ve cümle iskeletini değiştir.',\n'YALNIZ geçerli JSON döndür. Markdown/kod bloğu/açıklama yazma.',\n'Biçim tam olarak: {\"results\":[{\"item_id\":'+iid+',\"importance\":75,\"category\":\"DİĞER MEB\",\"title_main\":\"...\",\"title_highlight\":\"...\",\"hook\":\"...\",\"summary\":\"...\",\"bullet_1\":\"...\",\"bullet_2\":\"\",\"bullet_3\":\"\",\"source_name\":\"'+sourceName.replace(/\"/g,'')+'\",\"official_source_url\":\"'+sourceUrl.replace(/\"/g,'')+'\",\"hashtags\":[\"#MEB\",\"#Eğitim\",\"#MilliEğitim\",\"#EğitimGündemi\",\"#Öğretmen\"]}]}',\n'Kurallar: title_main 28-60 karakter ve özgün; title_highlight 18-55 karakter ve ikinci bir açı; summary 120-190 karakter.',\n'bullet_1..3 yalnız SOURCE_ARTICLE içindeki ayrı gerçeklerin kısa yeniden yazımı olacak. Kaynakta açık kanıt yoksa alanı boş string yap.',\n'category yalnız: MÜFREDAT, ÖĞRETMEN, ÖĞRENCİ, SINAV, ATAMA, YÖNETİCİ, PROJE, TEKNOLOJİ, MESLEKİ EĞİTİM, ÖZEL EĞİTİM, MEVZUAT, DİĞER MEB.',\n'ITEM_ID='+iid,\n'SOURCE_NAME='+sourceName,\n'OFFICIAL_URL='+sourceUrl,\n'SOURCE_TITLE='+sourceTitle,\n'SOURCE_ARTICLE='+sourceArticle\n].join('\\n');\nreturn [{json:{...b,free_ai_body:{prompt,model:'mistral'},_free_ai_provider:'duckai-p2d',_free_ai_mode:'INTERNAL_CLOUD_SINGLE_SOURCE'}}];"
       },
       "id": "5ee634aa-6444-4135-be23-968002f47789",
       "name": "NVIDIA FREE HAZIRLA",
@@ -1897,7 +1897,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://text.pollinations.ai/",
+        "url": "http://127.0.0.1:10000/ai-free",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -1907,22 +1907,21 @@
             },
             {
               "name": "Accept",
-              "value": "application/json,text/plain;q=0.9"
+              "value": "application/json"
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json.nvidia_body) }}",
+        "jsonBody": "={{ JSON.stringify($json.free_ai_body) }}",
         "options": {
           "response": {
             "response": {
-              "neverError": false,
-              "responseFormat": "text",
-              "outputPropertyName": "free_ai_text"
+              "neverError": true,
+              "responseFormat": "json"
             }
           },
-          "timeout": 45000
+          "timeout": 90000
         }
       },
       "id": "97c4c9cf-3d2f-4e36-a728-4c6f4a5a7c01",
@@ -1935,12 +1934,12 @@
       ],
       "onError": "continueRegularOutput",
       "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 35000
+      "maxTries": 2,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "jsCode": "function extractText(r){if(!r)return'';if(typeof r.free_ai_text==='string')return r.free_ai_text.trim();if(typeof r.data==='string')return r.data.trim();if(typeof r.body==='string')return r.body.trim();if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();return String(r.output_text||'').trim();}\nfunction semanticOk(r){let t=extractText(r);if(!t)return false;t=t.replace(/^\\`\\`\\`(?:json)?\\s*/i,'').replace(/\\s*\\`\\`\\`$/,'').trim();try{const p=JSON.parse(t);return !!(p&&Array.isArray(p.results)&&p.results.length&&p.results.some(x=>x&&Number.isFinite(Number(x.item_id))));}catch(e){return false;}}\nconst r=$input.first()?.json||{};const txt=extractText(r);\nif(semanticOk(r))return [{json:{output_text:txt,_router_model:'pollinations:openai-fast-native',_router_attempt:'FREE_CLOUD_AI',_provider_failover:true,_semantic_valid:true}}];\nreturn [];"
+        "jsCode": "function extractText(r){if(!r)return'';if(r.ok===true&&typeof r.output_text==='string')return r.output_text.trim();if(typeof r.output_text==='string')return r.output_text.trim();if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();return'';}\nfunction semanticOk(r){let t=extractText(r);if(!t)return false;t=t.replace(/^\\`\\`\\`(?:json)?\\s*/i,'').replace(/\\s*\\`\\`\\`$/,'').trim();try{const p=JSON.parse(t);return !!(p&&Array.isArray(p.results)&&p.results.length&&p.results.some(x=>x&&Number.isFinite(Number(x.item_id))));}catch(e){return false;}}\nconst r=$input.first()?.json||{};const txt=extractText(r);\nif(semanticOk(r))return [{json:{output_text:txt,_router_model:r.model||'duckai/mistral-small-2603',_router_attempt:'FREE_CLOUD_AI',_provider_failover:true,_semantic_valid:true}}];\nreturn [];"
       },
       "id": "5c9911e3-8f47-43f3-bb2f-d1c9d1d0a201",
       "name": "NVIDIA FREE BAŞARILI - DEVAM",
@@ -1953,7 +1952,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function extractText(r){if(!r)return'';if(typeof r.free_ai_text==='string')return r.free_ai_text.trim();if(typeof r.data==='string')return r.data.trim();if(typeof r.body==='string')return r.body.trim();if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();return String(r.output_text||'').trim();}\nfunction semanticOk(r){let t=extractText(r);if(!t)return false;t=t.replace(/^\\`\\`\\`(?:json)?\\s*/i,'').replace(/\\s*\\`\\`\\`$/,'').trim();try{const p=JSON.parse(t);return !!(p&&Array.isArray(p.results)&&p.results.length&&p.results.some(x=>x&&Number.isFinite(Number(x.item_id))));}catch(e){return false;}}\nconst r=$input.first()?.json||{};if(semanticOk(r))return [];\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};\nreturn [{json:{...b,_free_ai_error:r.error||r.detail||{message:'FREE_CLOUD_AI_SEMANTIC_INVALID'},_router_fallback:'DIRECT_OPENAI_LAST_RESORT',_semantic_failover:true}}];"
+        "jsCode": "function extractText(r){if(!r)return'';if(typeof r.output_text==='string')return r.output_text.trim();if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();return'';}\nfunction semanticOk(r){let t=extractText(r);if(!t)return false;t=t.replace(/^\\`\\`\\`(?:json)?\\s*/i,'').replace(/\\s*\\`\\`\\`$/,'').trim();try{const p=JSON.parse(t);return !!(p&&Array.isArray(p.results)&&p.results.length&&p.results.some(x=>x&&Number.isFinite(Number(x.item_id))));}catch(e){return false;}}\nconst r=$input.first()?.json||{};if(semanticOk(r))return [];\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};\nreturn [{json:{...b,_free_ai_error:r.detail||r.error||{message:'DUCKAI_FREE_SEMANTIC_INVALID'},_router_fallback:'DIRECT_OPENAI_LAST_RESORT',_semantic_failover:true}}];"
       },
       "id": "38d6dff9-f60f-4a3d-9c19-276b8a1e4501",
       "name": "NVIDIA FREE HATA - OPENAI YEDEK",

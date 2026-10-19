@@ -3,3 +3,4 @@ uvicorn[standard]==0.48.0
 pillow==12.3.0
 python-multipart==0.0.20
 cryptography>=43,<47
+p2d-duck==1.2.0

@@ -325,6 +325,38 @@ def media(filename:str):
     if not os.path.exists(path): raise HTTPException(404,"Not found")
     return FileResponse(path,media_type=mimetypes.guess_type(path)[0] or "image/jpeg")
 
+
+# -------- Free cloud AI editor: Duck.ai / Mistral Small --------
+class FreeAIRequest(BaseModel):
+    prompt: str
+    model: Optional[str]="mistral"
+
+@app.get("/ai-free/health")
+def ai_free_health():
+    try:
+        import duck_ai
+        return {"ok":True,"provider":"duck.ai","client":"p2d-duck","model":"mistral-small-2603"}
+    except Exception as e:
+        return {"ok":False,"provider":"duck.ai","error":str(e)[:180]}
+
+@app.post("/ai-free")
+def ai_free(req:FreeAIRequest):
+    prompt=str(req.prompt or "").strip()
+    if not prompt:
+        raise HTTPException(400,"prompt required")
+    if len(prompt)>14000:
+        prompt=prompt[:14000]
+    try:
+        from duck_ai import DuckChat
+        with DuckChat(model=(req.model or "mistral"), max_retries=4, backoff_base=0.8) as duck:
+            out=duck.ask(prompt, remember=False)
+        text=str(out or "").strip()
+        if not text:
+            raise RuntimeError("empty Duck.ai response")
+        return {"ok":True,"output_text":text,"model":"duckai/mistral-small-2603"}
+    except Exception as e:
+        raise HTTPException(502,"Duck.ai free editor failed: "+str(e)[:240])
+
 # -------- Official MEB discovery/article endpoints --------
 def _fetch_remote(url:str):
     headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36","Accept-Language":"tr-TR,tr;q=0.9","Connection":"close"}
