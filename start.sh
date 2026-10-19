@@ -254,7 +254,7 @@ url='https://integrate.api.nvidia.com/v1/chat/completions'
 body={
   'model':'meta/muse-glimmer-30b',
   'messages':[{'role':'user','content':'Return only valid JSON: {"results":[{"item_id":0,"ok":true}]}'}],
-  'temperature':0.1,'max_tokens':300,'stream':False
+  'temperature':0.95,'top_p':1.0,'reasoning_effort':'none','max_tokens':500,'stream':False
 }
 if not key:
     print('EG365_NVIDIA_PREFLIGHT: missing_key',flush=True)
