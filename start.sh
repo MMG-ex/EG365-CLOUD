@@ -245,6 +245,50 @@ if missing:
 p.write_text(s,encoding='utf-8')
 PY
 
+# Cloud-only free AI preflight. Runs only during smoke validation and never publishes.
+if [ "${CLOUD_SMOKE_TEST:-false}" = "true" ]; then
+  /opt/venv/bin/python - <<'PY' || true
+import os,json,urllib.request,urllib.error
+key=os.environ.get('NVIDIA_API_KEY','').strip()
+url='https://integrate.api.nvidia.com/v1/chat/completions'
+body={
+  'model':'meta/muse-glimmer-30b',
+  'messages':[{'role':'user','content':'Return only valid JSON: {"results":[{"item_id":0,"ok":true}]}'}],
+  'temperature':0.1,'max_tokens':300,'stream':False
+}
+if not key:
+    print('EG365_NVIDIA_PREFLIGHT: missing_key',flush=True)
+else:
+    req=urllib.request.Request(url,data=json.dumps(body).encode(),method='POST',headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'})
+    try:
+        with urllib.request.urlopen(req,timeout=45) as r:
+            status=getattr(r,'status',200)
+            obj=json.loads(r.read().decode('utf-8','replace'))
+        content=str((((obj.get('choices') or [{}])[0].get('message') or {}).get('content') or '')).strip()
+        fence=chr(96)*3
+        clean=content.replace(fence+'json','').replace(fence,'').strip()
+        semantic=False
+        try:
+            parsed=json.loads(clean)
+            semantic=isinstance(parsed.get('results'),list) and bool(parsed['results']) and int(parsed['results'][0].get('item_id',-1))==0
+        except Exception:
+            pass
+        print('EG365_NVIDIA_PREFLIGHT: http='+str(status)+' semantic='+str(semantic).lower()+' model=meta/muse-glimmer-30b',flush=True)
+    except urllib.error.HTTPError as e:
+        msg=''
+        try:
+            raw=e.read().decode('utf-8','replace')
+            obj=json.loads(raw)
+            err=obj.get('detail') or obj.get('error') or obj.get('message') or ''
+            msg=str(err)[:240].replace('\n',' ')
+        except Exception:
+            msg='http_error'
+        print('EG365_NVIDIA_PREFLIGHT: http='+str(e.code)+' error='+msg,flush=True)
+    except Exception as e:
+        print('EG365_NVIDIA_PREFLIGHT: transport_error='+str(e)[:240],flush=True)
+PY
+fi
+
 # Temporary cloud-origin marker: append MMG and @mmuratg at the very bottom of every social caption.
 # This is applied only to the ephemeral cloud workflow and is easy to remove later.
 python3 - <<'PY'
