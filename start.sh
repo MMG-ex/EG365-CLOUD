@@ -743,6 +743,7 @@ try:
         'status_only':cand.get('status_only'),
         'content_quality_pass':cand.get('content_quality_pass'),
         'ai_status':str(cand.get('ai_status') or '')[:60],
+        'ai_error':str(cand.get('ai_error') or '')[:180],
         'ai_model_used':str(cand.get('ai_model_used') or '')[:60],
         'publish_telegram':cand.get('publish_telegram'),
         'publish_instagram':cand.get('publish_instagram'),
