@@ -209,7 +209,7 @@ import os
 p=Path('/opt/workflow/EG365_CLOUD_RENDER_V128.json')
 s=p.read_text(encoding='utf-8')
 keys=[
-'OPENAI_API_KEY','NVIDIA_API_KEY','TELEGRAM_BOT_TOKEN','TELEGRAM_CHAT_ID','TELEGRAM_PUBLIC_URL',
+'OPENAI_API_KEY','TELEGRAM_BOT_TOKEN','TELEGRAM_CHAT_ID','TELEGRAM_PUBLIC_URL',
 'INSTAGRAM_USER_ID','INSTAGRAM_ACCESS_TOKEN','THREADS_ACCESS_TOKEN',
 'FACEBOOK_PAGE_ID','FACEBOOK_PAGE_ACCESS_TOKEN'
 ]
@@ -245,47 +245,22 @@ if missing:
 p.write_text(s,encoding='utf-8')
 PY
 
-# Cloud-only free AI preflight. Runs only during smoke validation and never publishes.
+# Cloud-only free AI reachability preflight. Runs only during smoke validation and never publishes.
+# Uses the public model catalogue so it does not consume the anonymous generation allowance.
 if [ "${CLOUD_SMOKE_TEST:-false}" = "true" ]; then
   /opt/venv/bin/python - <<'PY' || true
-import os,json,urllib.request,urllib.error
-key=os.environ.get('NVIDIA_API_KEY','').strip()
-url='https://integrate.api.nvidia.com/v1/chat/completions'
-body={
-  'model':'meta/muse-glimmer-30b',
-  'messages':[{'role':'user','content':'Return only valid JSON: {"results":[{"item_id":0,"ok":true}]}'}],
-  'temperature':0.95,'top_p':1.0,'reasoning_effort':'none','max_tokens':500,'stream':False
-}
-if not key:
-    print('EG365_NVIDIA_PREFLIGHT: missing_key',flush=True)
-else:
-    req=urllib.request.Request(url,data=json.dumps(body).encode(),method='POST',headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'})
-    try:
-        with urllib.request.urlopen(req,timeout=45) as r:
-            status=getattr(r,'status',200)
-            obj=json.loads(r.read().decode('utf-8','replace'))
-        content=str((((obj.get('choices') or [{}])[0].get('message') or {}).get('content') or '')).strip()
-        fence=chr(96)*3
-        clean=content.replace(fence+'json','').replace(fence,'').strip()
-        semantic=False
-        try:
-            parsed=json.loads(clean)
-            semantic=isinstance(parsed.get('results'),list) and bool(parsed['results']) and int(parsed['results'][0].get('item_id',-1))==0
-        except Exception:
-            pass
-        print('EG365_NVIDIA_PREFLIGHT: http='+str(status)+' semantic='+str(semantic).lower()+' model=meta/muse-glimmer-30b',flush=True)
-    except urllib.error.HTTPError as e:
-        msg=''
-        try:
-            raw=e.read().decode('utf-8','replace')
-            obj=json.loads(raw)
-            err=obj.get('detail') or obj.get('error') or obj.get('message') or ''
-            msg=str(err)[:240].replace('\n',' ')
-        except Exception:
-            msg='http_error'
-        print('EG365_NVIDIA_PREFLIGHT: http='+str(e.code)+' error='+msg,flush=True)
-    except Exception as e:
-        print('EG365_NVIDIA_PREFLIGHT: transport_error='+str(e)[:240],flush=True)
+import json,urllib.request
+url='https://text.pollinations.ai/models'
+try:
+    req=urllib.request.Request(url,headers={'User-Agent':'EG365-Cloud/1.0','Accept':'application/json'})
+    with urllib.request.urlopen(req,timeout=25) as r:
+        status=getattr(r,'status',200)
+        obj=json.loads(r.read().decode('utf-8','replace'))
+    names=[str(x.get('name') or '') for x in obj] if isinstance(obj,list) else []
+    ok=status==200 and bool(names)
+    print('EG365_FREE_AI_PREFLIGHT: http='+str(status)+' catalog_ok='+str(ok).lower()+' models='+str(len(names)),flush=True)
+except Exception as e:
+    print('EG365_FREE_AI_PREFLIGHT: transport_error='+str(e)[:180],flush=True)
 PY
 fi
 
