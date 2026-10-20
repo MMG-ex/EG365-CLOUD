@@ -1,0 +1,32 @@
+name: EG365 Render Keepalive
+
+on:
+  schedule:
+    # Render 15 dk bos kalmadan once disaridan gercek inbound trafik.
+    # 12 dk: 14. dakikadan once guvenlik payi birakir.
+    - cron: "*/12 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eg365-render-keepalive
+  cancel-in-progress: true
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping EG365 Render health only
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://eg365-cloud.onrender.com/health"
+          HTTP_CODE="$(curl -L -sS -o /tmp/eg365-health.json -w '%{http_code}'             --connect-timeout 20 --max-time 120             --retry 2 --retry-delay 5             "$URL")"
+          cat /tmp/eg365-health.json
+          echo
+          echo "HTTP=$HTTP_CODE"
+          test "$HTTP_CODE" = "200"
+          grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' /tmp/eg365-health.json
