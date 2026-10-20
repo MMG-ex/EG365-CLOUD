@@ -326,18 +326,50 @@ def media(filename:str):
     return FileResponse(path,media_type=mimetypes.guess_type(path)[0] or "image/jpeg")
 
 
-# -------- Free cloud AI editor: Duck.ai / Mistral Small --------
+# -------- Free cloud AI editor: Pollinations anonymous OpenAI-compatible --------
 class FreeAIRequest(BaseModel):
     prompt: str
-    model: Optional[str]="mistral"
+    model: Optional[str]="openai"
+
+def _pollinations_chat(prompt:str, model:str="openai"):
+    import json, time
+    url="https://text.pollinations.ai/openai"
+    payload={
+        "model": model or "openai",
+        "messages":[
+            {"role":"system","content":"TÃ¼rkÃ§e profesyonel haber editÃ¶rÃ¼sÃ¼n. KullanÄ±cÄ±nÄ±n istediÄŸi biÃ§imi eksiksiz uygula. YalnÄ±z geÃ§erli JSON isteniyorsa yalnÄ±z JSON dÃ¶ndÃ¼r."},
+            {"role":"user","content":prompt}
+        ],
+        "temperature":0.1,
+        "max_tokens":3000,
+        "stream":False
+    }
+    raw=json.dumps(payload,ensure_ascii=False).encode("utf-8")
+    last=None
+    for attempt in range(3):
+        try:
+            req=urllib.request.Request(
+                url,data=raw,method="POST",
+                headers={
+                    "User-Agent":"EG365-Cloud/1.0",
+                    "Content-Type":"application/json",
+                    "Accept":"application/json"
+                }
+            )
+            with urllib.request.urlopen(req,timeout=55) as r:
+                obj=json.loads(r.read().decode("utf-8","replace"))
+            text=str((((obj.get("choices") or [{}])[0].get("message") or {}).get("content") or "")).strip()
+            if text:
+                return text,str(obj.get("model") or model or "openai")
+            last=RuntimeError("empty Pollinations response")
+        except Exception as e:
+            last=e
+            time.sleep(1.2*(attempt+1))
+    raise last or RuntimeError("Pollinations request failed")
 
 @app.get("/ai-free/health")
 def ai_free_health():
-    try:
-        import duck_ai
-        return {"ok":True,"provider":"duck.ai","client":"p2d-duck","model":"mistral-small-2603"}
-    except Exception as e:
-        return {"ok":False,"provider":"duck.ai","error":str(e)[:180]}
+    return {"ok":True,"provider":"pollinations-anonymous","endpoint":"text.pollinations.ai/openai","model":"openai"}
 
 @app.post("/ai-free")
 def ai_free(req:FreeAIRequest):
@@ -347,15 +379,10 @@ def ai_free(req:FreeAIRequest):
     if len(prompt)>14000:
         prompt=prompt[:14000]
     try:
-        from duck_ai import DuckChat
-        with DuckChat(model=(req.model or "mistral"), max_retries=4, backoff_base=0.8) as duck:
-            out=duck.ask(prompt, remember=False)
-        text=str(out or "").strip()
-        if not text:
-            raise RuntimeError("empty Duck.ai response")
-        return {"ok":True,"output_text":text,"model":"duckai/mistral-small-2603"}
+        text,model=_pollinations_chat(prompt,req.model or "openai")
+        return {"ok":True,"output_text":text,"model":"pollinations/"+model}
     except Exception as e:
-        raise HTTPException(502,"Duck.ai free editor failed: "+str(e)[:240])
+        raise HTTPException(502,"Pollinations free editor failed: "+str(e)[:240])
 
 # -------- Official MEB discovery/article endpoints --------
 def _fetch_remote(url:str):
