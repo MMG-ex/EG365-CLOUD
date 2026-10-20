@@ -331,9 +331,73 @@ class FreeAIRequest(BaseModel):
     prompt: str
     model: Optional[str]="openai"
 
+def _compact_free_editor_prompt(prompt:str)->str:
+    p=str(prompt or "")
+    if len(p)<=5200:
+        return p
+    return p[:1900]+"\n\n[...SOURCE_ARTICLE KISALTILDI...]\n\n"+p[-3150:]
+
+def _extract_results_obj(value):
+    import json,re
+    seen=set()
+    def walk(v,depth=0):
+        if depth>7: return None
+        if isinstance(v,dict):
+            if isinstance(v.get("results"),list) and v.get("results"):
+                return {"results":v["results"]}
+            for k in ("content","text","output","response","reasoning","arguments","tool_calls","message","data"):
+                if k in v:
+                    r=walk(v.get(k),depth+1)
+                    if r: return r
+            for x in v.values():
+                r=walk(x,depth+1)
+                if r: return r
+            return None
+        if isinstance(v,list):
+            for x in v:
+                r=walk(x,depth+1)
+                if r: return r
+            return None
+        if not isinstance(v,str): return None
+        t=v.strip()
+        if not t or t in seen: return None
+        seen.add(t)
+        t=re.sub(r"^```(?:json)?\\s*","",t,flags=re.I)
+        t=re.sub(r"\\s*```$","",t)
+        try:
+            obj=json.loads(t)
+            r=walk(obj,depth+1)
+            if r: return r
+        except Exception:
+            pass
+        for m in re.finditer(r'\\{\\s*"results"\\s*:',t):
+            start=m.start(); dep=0; ins=False; esc=False
+            for i,ch in enumerate(t[start:],start):
+                if ins:
+                    if esc: esc=False
+                    elif ch=="\\\\": esc=True
+                    elif ch=='"': ins=False
+                    continue
+                if ch=='"': ins=True; continue
+                if ch=="{": dep+=1
+                elif ch=="}":
+                    dep-=1
+                    if dep==0:
+                        cand=t[start:i+1]
+                        try:
+                            obj=json.loads(cand)
+                            r=walk(obj,depth+1)
+                            if r: return r
+                        except Exception:
+                            pass
+                        break
+        return None
+    return walk(value)
+
 def _pollinations_chat(prompt:str, model:str="openai"):
     import json, time
     last=None
+    prompt=_compact_free_editor_prompt(prompt)
     # Free API Classic direct endpoint. This path is separate from the
     # OpenAI-compat /openai route, which can return 402 from cloud IPs.
     payload={
@@ -347,7 +411,7 @@ def _pollinations_chat(prompt:str, model:str="openai"):
         "private":True
     }
     raw=json.dumps(payload,ensure_ascii=False).encode("utf-8")
-    for attempt in range(2):
+    for attempt in range(1):
         try:
             req=urllib.request.Request(
                 "https://text.pollinations.ai/",
@@ -361,19 +425,17 @@ def _pollinations_chat(prompt:str, model:str="openai"):
             with urllib.request.urlopen(req,timeout=45) as r:
                 body=r.read().decode("utf-8","replace").strip()
             if body:
-                # Some classic responses are a JSON string; unwrap once.
                 try:
                     obj=json.loads(body)
+                    normalized=_extract_results_obj(obj)
+                    if normalized:
+                        return json.dumps(normalized,ensure_ascii=False),"openai-classic-post-normalized"
                     if isinstance(obj,str):
                         body=obj.strip()
-                    elif isinstance(obj,dict) and "results" not in obj:
-                        for k in ("text","response","output","content"):
-                            if isinstance(obj.get(k),str) and obj.get(k).strip():
-                                body=obj[k].strip(); break
-                    elif isinstance(obj,dict) and "results" in obj:
-                        body=json.dumps(obj,ensure_ascii=False)
                 except Exception:
-                    pass
+                    normalized=_extract_results_obj(body)
+                    if normalized:
+                        return json.dumps(normalized,ensure_ascii=False),"openai-classic-post-normalized"
                 if body:
                     return body,"openai-classic-post"
             last=RuntimeError("empty Pollinations classic POST response")
