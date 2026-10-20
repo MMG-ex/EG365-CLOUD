@@ -333,9 +333,9 @@ class FreeAIRequest(BaseModel):
 
 def _compact_free_editor_prompt(prompt:str)->str:
     p=str(prompt or "")
-    if len(p)<=5200:
+    if len(p)<=4300:
         return p
-    return p[:1900]+"\n\n[...SOURCE_ARTICLE KISALTILDI...]\n\n"+p[-3150:]
+    return p[:1500]+"\n\n[...SOURCE_ARTICLE KISALTILDI...]\n\n"+p[-2700:]
 
 def _extract_results_obj(value):
     import json,re
@@ -411,7 +411,7 @@ def _pollinations_chat(prompt:str, model:str="openai"):
         "private":True
     }
     raw=json.dumps(payload,ensure_ascii=False).encode("utf-8")
-    for attempt in range(1):
+    for attempt in range(2):
         try:
             req=urllib.request.Request(
                 "https://text.pollinations.ai/",
@@ -431,30 +431,20 @@ def _pollinations_chat(prompt:str, model:str="openai"):
                     if normalized:
                         return json.dumps(normalized,ensure_ascii=False),"openai-classic-post-normalized"
                     if isinstance(obj,str):
-                        body=obj.strip()
+                        normalized=_extract_results_obj(obj)
+                        if normalized:
+                            return json.dumps(normalized,ensure_ascii=False),"openai-classic-post-normalized"
                 except Exception:
                     normalized=_extract_results_obj(body)
                     if normalized:
                         return json.dumps(normalized,ensure_ascii=False),"openai-classic-post-normalized"
-                if body:
-                    return body,"openai-classic-post"
-            last=RuntimeError("empty Pollinations classic POST response")
+                last=RuntimeError("Pollinations semantic wrapper without results")
+            else:
+                last=RuntimeError("empty Pollinations classic POST response")
         except Exception as e:
             last=e
-            time.sleep(1.0*(attempt+1))
-
-    # Last anonymous fallback: classic GET text endpoint. Keep prompt bounded so
-    # URL size stays safe. It remains fail-closed if this also fails.
-    try:
-        short=prompt[:4200]
-        url="https://text.pollinations.ai/"+urllib.parse.quote(short,safe="")+"?model=openai&temperature=0.1&private=true"
-        req=urllib.request.Request(url,headers={"User-Agent":"EG365-Cloud/1.0","Accept":"text/plain"})
-        with urllib.request.urlopen(req,timeout=45) as r:
-            body=r.read().decode("utf-8","replace").strip()
-        if body:
-            return body,"openai-classic-get"
-    except Exception as e:
-        last=e
+        if attempt==0:
+            time.sleep(31)
     raise last or RuntimeError("Pollinations classic request failed")
 
 @app.get("/ai-free/health")
