@@ -757,6 +757,35 @@ try:
         err=safe_error(x)
         success=(not has_error(x)) and (explicit or bool(ident) or data_ok or (200<=sc<300))
         return {'ran':True,'success':bool(success),'id':ident,'status_code':sc,'error_code':err['code'],'error_message':err['message']}
+    route_names=[
+      'KAYNAK DOĞRULAMA + OMNIROUTE HAZIRLA',
+      'NVIDIA FREE HAZIRLA',
+      'NVIDIA FREE - CHAT COMPLETIONS',
+      'NVIDIA FREE BAŞARILI - DEVAM',
+      'NVIDIA FREE HATA - OPENAI YEDEK',
+      'CHATGPT 1/5 - GPT-5.4-MINI',
+      'MODEL 1 HATA - SONRAKİNE GEÇ',
+      'CHATGPT 2/5 - GPT-5.6-LUNA',
+      'CHATGPT 3/5 - GPT-5.6-SOL',
+      'CHATGPT 4/5 - GPT-5.6-TERRA',
+      'CHATGPT 5/5 - GPT-6-ASTRA',
+      'AI SONUÇLARI AÇ + YAYIN FİLTRESİ'
+    ]
+    trace={}
+    for name in route_names:
+        j=last_json(name)
+        if j is None: continue
+        trace[name]={
+          'ok':j.get('ok'),
+          'status_only':j.get('status_only'),
+          'ai_status':str(j.get('ai_status') or '')[:60],
+          'model':str(j.get('model') or j.get('_router_model') or j.get('ai_model_used') or '')[:80],
+          'semantic_valid':j.get('_semantic_valid'),
+          'fallback':str(j.get('_router_fallback') or '')[:60],
+          'error':str(j.get('detail') or (j.get('error') if isinstance(j.get('error'),str) else '') or j.get('ai_error') or '')[:160],
+          'output_chars':len(str(j.get('output_text') or ''))
+        }
+    print("EG365_ROUTE_TRACE: "+json.dumps({'execution_id':row[0],'trace':trace},ensure_ascii=False),flush=True)
     cand=last_json('AI SONUÇLARI AÇ + YAYIN FİLTRESİ') or {}
     cat=last_json('CATBOX PUBLIC URL YÜKLE') or {}
     caturl=''
