@@ -1751,7 +1751,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function clean(v=''){return String(v??'').replace(/\\s+/g,' ').trim();}\nconst cfg=$('X CONFIG').first().json;\nif(cfg.x_enabled!==true) return [];\nif(!String(cfg.x_user_access_token||'').trim()) throw new Error('X USER ACCESS TOKEN YOK');\n\nreturn $input.all().map(item=>{\n  const j=item.json||{};\n  if(!item.binary?.data) throw new Error('X YAYIN: binary.data yok');\n\n  const main=clean(j.title_main||j.title||'');\n  const hi=clean(j.title_highlight||'');\n  const url=clean(j.official_source_url||j.source_url||j.link||'');\n\n  let headline=[main,hi].filter(Boolean).join(': ');\n  if(headline.length>205){\n    headline=headline.slice(0,202).replace(/\\s+\\S*$/,'').trim()+'...';\n  }\n\n  let text=headline;\n  if(url){\n    const candidate=headline+'\\n\\n'+url;\n    if(candidate.length<=275) text=candidate;\n  }\n  if(!text) throw new Error('X YAYIN: metin yok');\n\n  return {json:{...j,_x_text:text},binary:item.binary};\n}).slice(0,Number(cfg.max_x_per_run||1));"
+        "jsCode": "return [];"
       },
       "id": "3f78d48b-a1c2-4a70-ae8f-93b25093e896",
       "name": "X CANLI FILTRE1",
