@@ -333,43 +333,71 @@ class FreeAIRequest(BaseModel):
 
 def _pollinations_chat(prompt:str, model:str="openai"):
     import json, time
-    url="https://text.pollinations.ai/openai"
+    last=None
+    # Free API Classic direct endpoint. This path is separate from the
+    # OpenAI-compat /openai route, which can return 402 from cloud IPs.
     payload={
-        "model": model or "openai",
         "messages":[
-            {"role":"system","content":"TÃ¼rkÃ§e profesyonel haber editÃ¶rÃ¼sÃ¼n. KullanÄ±cÄ±nÄ±n istediÄŸi biÃ§imi eksiksiz uygula. YalnÄ±z geÃ§erli JSON isteniyorsa yalnÄ±z JSON dÃ¶ndÃ¼r."},
+            {"role":"system","content":"Türkçe profesyonel haber editörüsün. Kullanıcının istediği biçimi eksiksiz uygula. Yalnız geçerli JSON isteniyorsa yalnız JSON döndür."},
             {"role":"user","content":prompt}
         ],
+        "model":"openai",
         "temperature":0.1,
-        "max_tokens":3000,
-        "stream":False
+        "jsonMode":False,
+        "private":True
     }
     raw=json.dumps(payload,ensure_ascii=False).encode("utf-8")
-    last=None
-    for attempt in range(3):
+    for attempt in range(2):
         try:
             req=urllib.request.Request(
-                url,data=raw,method="POST",
+                "https://text.pollinations.ai/",
+                data=raw,method="POST",
                 headers={
                     "User-Agent":"EG365-Cloud/1.0",
                     "Content-Type":"application/json",
-                    "Accept":"application/json"
+                    "Accept":"text/plain,application/json"
                 }
             )
-            with urllib.request.urlopen(req,timeout=55) as r:
-                obj=json.loads(r.read().decode("utf-8","replace"))
-            text=str((((obj.get("choices") or [{}])[0].get("message") or {}).get("content") or "")).strip()
-            if text:
-                return text,str(obj.get("model") or model or "openai")
-            last=RuntimeError("empty Pollinations response")
+            with urllib.request.urlopen(req,timeout=45) as r:
+                body=r.read().decode("utf-8","replace").strip()
+            if body:
+                # Some classic responses are a JSON string; unwrap once.
+                try:
+                    obj=json.loads(body)
+                    if isinstance(obj,str):
+                        body=obj.strip()
+                    elif isinstance(obj,dict) and "results" not in obj:
+                        for k in ("text","response","output","content"):
+                            if isinstance(obj.get(k),str) and obj.get(k).strip():
+                                body=obj[k].strip(); break
+                    elif isinstance(obj,dict) and "results" in obj:
+                        body=json.dumps(obj,ensure_ascii=False)
+                except Exception:
+                    pass
+                if body:
+                    return body,"openai-classic-post"
+            last=RuntimeError("empty Pollinations classic POST response")
         except Exception as e:
             last=e
-            time.sleep(1.2*(attempt+1))
-    raise last or RuntimeError("Pollinations request failed")
+            time.sleep(1.0*(attempt+1))
+
+    # Last anonymous fallback: classic GET text endpoint. Keep prompt bounded so
+    # URL size stays safe. It remains fail-closed if this also fails.
+    try:
+        short=prompt[:4200]
+        url="https://text.pollinations.ai/"+urllib.parse.quote(short,safe="")+"?model=openai&temperature=0.1&private=true"
+        req=urllib.request.Request(url,headers={"User-Agent":"EG365-Cloud/1.0","Accept":"text/plain"})
+        with urllib.request.urlopen(req,timeout=45) as r:
+            body=r.read().decode("utf-8","replace").strip()
+        if body:
+            return body,"openai-classic-get"
+    except Exception as e:
+        last=e
+    raise last or RuntimeError("Pollinations classic request failed")
 
 @app.get("/ai-free/health")
 def ai_free_health():
-    return {"ok":True,"provider":"pollinations-anonymous","endpoint":"text.pollinations.ai/openai","model":"openai"}
+    return {"ok":True,"provider":"pollinations-free-classic","endpoint":"text.pollinations.ai","model":"openai"}
 
 @app.post("/ai-free")
 def ai_free(req:FreeAIRequest):
