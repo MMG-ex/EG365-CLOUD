@@ -408,7 +408,40 @@ def _pollinations_chat(prompt:str, model:str="openai"):
         "model":"openai",
         "temperature":0.1,
         "jsonMode":True,
-        "private":True
+        "private":True,
+        "tools":[{
+            "type":"function",
+            "function":{
+                "name":"emit_news_results",
+                "description":"EG365 editoryal sonucunu yalnız yapılandırılmış veri olarak döndür.",
+                "parameters":{
+                    "type":"object",
+                    "properties":{
+                        "results":{"type":"array","minItems":1,"items":{
+                            "type":"object",
+                            "properties":{
+                                "item_id":{"type":"integer"},
+                                "importance":{"type":"number"},
+                                "category":{"type":"string"},
+                                "title_main":{"type":"string"},
+                                "title_highlight":{"type":"string"},
+                                "hook":{"type":"string"},
+                                "summary":{"type":"string"},
+                                "bullet_1":{"type":"string"},
+                                "bullet_2":{"type":"string"},
+                                "bullet_3":{"type":"string"},
+                                "source_name":{"type":"string"},
+                                "official_source_url":{"type":"string"},
+                                "hashtags":{"type":"array","items":{"type":"string"}}
+                            },
+                            "required":["item_id","importance","category","title_main","title_highlight","summary","bullet_1","bullet_2","bullet_3","source_name","official_source_url","hashtags"]
+                        }}
+                    },
+                    "required":["results"]
+                }
+            }
+        }],
+        "tool_choice":{"type":"function","function":{"name":"emit_news_results"}}
     }
     raw=json.dumps(payload,ensure_ascii=False).encode("utf-8")
     for attempt in range(2):
