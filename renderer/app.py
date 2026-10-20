@@ -379,7 +379,7 @@ def ai_free(req:FreeAIRequest):
     if len(prompt)>14000:
         prompt=prompt[:14000]
     try:
-        text,model=_pollinations_chat(prompt,req.model or "openai")
+        text,model=_pollinations_chat(prompt,"openai")
         return {"ok":True,"output_text":text,"model":"pollinations/"+model}
     except Exception as e:
         raise HTTPException(502,"Pollinations free editor failed: "+str(e)[:240])
