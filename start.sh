@@ -1011,6 +1011,10 @@ PY
 
 # First cloud production pass is configurable. Final audit deploys disable it to avoid duplicate posts.
 if [ "${EG365_RUN_ON_BOOT:-true}" = "true" ]; then
+  if [ "${CLOUD_SMOKE_TEST:-false}" = "true" ]; then
+    echo "EG365_PROD: waiting_free_ai_rate_window"
+    sleep 40
+  fi
   run_prod || true
 else
   echo "EG365_PROD: boot_run_disabled"
