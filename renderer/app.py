@@ -396,13 +396,16 @@ def _extract_results_obj(value):
 
 def _pollinations_chat(prompt:str, model:str="openai"):
     import json, time
-    last=None
     prompt=_compact_free_editor_prompt(prompt)
-    # Free API Classic direct endpoint. This path is separate from the
-    # OpenAI-compat /openai route, which can return 402 from cloud IPs.
-    payload={
+
+    schema_hint=(
+        'Yanıt yalnız geçerli JSON olmalı ve tam olarak {"results":[{...}]} kök yapısını kullanmalı. '
+        'İlk karakter {, son karakter } olacak. Markdown, açıklama, role, reasoning veya tool_calls döndürme.'
+    )
+
+    tool_payload={
         "messages":[
-            {"role":"system","content":"Türkçe profesyonel haber editörüsün. Kullanıcının istediği biçimi eksiksiz uygula. Yalnız geçerli JSON isteniyorsa yalnız JSON döndür."},
+            {"role":"system","content":"Türkçe profesyonel haber editörüsün. Yalnız istenen yapılandırılmış JSON sonucunu üret."},
             {"role":"user","content":prompt}
         ],
         "model":"openai",
@@ -443,8 +446,24 @@ def _pollinations_chat(prompt:str, model:str="openai"):
         }],
         "tool_choice":{"type":"function","function":{"name":"emit_news_results"}}
     }
-    raw=json.dumps(payload,ensure_ascii=False).encode("utf-8")
-    for attempt in range(2):
+
+    repair_payload={
+        "messages":[
+            {"role":"system","content":"Sen bir JSON dönüştürücüsün. Düşünme metni veya açıklama yazma; yalnız geçerli JSON döndür."},
+            {"role":"user","content":schema_hint+"\n\n"+prompt}
+        ],
+        "model":"openai",
+        "temperature":0.0,
+        "jsonMode":True,
+        "private":True
+    }
+
+    last=None
+    attempts=[("tool",tool_payload),("repair",repair_payload)]
+    for idx,(mode_name,payload) in enumerate(attempts):
+        if idx:
+            time.sleep(31)
+        raw=json.dumps(payload,ensure_ascii=False).encode("utf-8")
         try:
             req=urllib.request.Request(
                 "https://text.pollinations.ai/",
@@ -455,29 +474,21 @@ def _pollinations_chat(prompt:str, model:str="openai"):
                     "Accept":"text/plain,application/json"
                 }
             )
-            with urllib.request.urlopen(req,timeout=45) as r:
+            with urllib.request.urlopen(req,timeout=55) as r:
                 body=r.read().decode("utf-8","replace").strip()
-            if body:
-                try:
-                    obj=json.loads(body)
-                    normalized=_extract_results_obj(obj)
-                    if normalized:
-                        return json.dumps(normalized,ensure_ascii=False),"openai-classic-post-normalized"
-                    if isinstance(obj,str):
-                        normalized=_extract_results_obj(obj)
-                        if normalized:
-                            return json.dumps(normalized,ensure_ascii=False),"openai-classic-post-normalized"
-                except Exception:
-                    normalized=_extract_results_obj(body)
-                    if normalized:
-                        return json.dumps(normalized,ensure_ascii=False),"openai-classic-post-normalized"
-                last=RuntimeError("Pollinations semantic wrapper without results")
-            else:
-                last=RuntimeError("empty Pollinations classic POST response")
+            if not body:
+                last=RuntimeError("empty Pollinations "+mode_name+" response")
+                continue
+            try:
+                obj=json.loads(body)
+            except Exception:
+                obj=body
+            normalized=_extract_results_obj(obj)
+            if normalized:
+                return json.dumps(normalized,ensure_ascii=False),"openai-classic-"+mode_name+"-normalized"
+            last=RuntimeError("Pollinations "+mode_name+" semantic wrapper without results")
         except Exception as e:
             last=e
-        if attempt==0:
-            time.sleep(31)
     raise last or RuntimeError("Pollinations classic request failed")
 
 @app.get("/ai-free/health")
