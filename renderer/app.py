@@ -406,10 +406,13 @@ def ai_free(req:FreeAIRequest):
         raise HTTPException(400,"prompt required")
     if len(prompt)>14000:
         prompt=prompt[:14000]
+    print("EG365_FREE_AI_CALL: start prompt_chars="+str(len(prompt)),flush=True)
     try:
         text,model=_pollinations_chat(prompt,"openai")
+        print("EG365_FREE_AI_CALL: ok model="+str(model)+" output_chars="+str(len(text)),flush=True)
         return {"ok":True,"output_text":text,"model":"pollinations/"+model}
     except Exception as e:
+        print("EG365_FREE_AI_CALL: error type="+type(e).__name__+" message="+str(e)[:220],flush=True)
         raise HTTPException(502,"Pollinations free editor failed: "+str(e)[:240])
 
 # -------- Official MEB discovery/article endpoints --------
