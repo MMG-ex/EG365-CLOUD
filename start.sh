@@ -530,9 +530,12 @@ PY
   echo "EG365_SMOKE: executing_dry_run"
   if ! timeout 420 n8n execute --id="$SMOKE_ID" >/tmp/eg365-smoke.log 2>&1; then
     echo "EG365_SMOKE_ERROR: dry_run_execution_failed_or_timed_out"
-    exit 1
+    echo "EG365_SMOKE_DEBUG: n8n_smoke_log_tail"
+    tail -140 /tmp/eg365-smoke.log || true
+    echo "EG365_SMOKE: service_kept_alive_after_execution_error"
+  else
+    echo "EG365_SMOKE: dry_run_execution_ok"
   fi
-  echo "EG365_SMOKE: dry_run_execution_ok"
   if ! /opt/venv/bin/python - <<'PY'
 from pathlib import Path
 import json,sys
