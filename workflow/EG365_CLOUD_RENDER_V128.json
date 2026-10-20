@@ -1952,7 +1952,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function extractText(r){if(!r)return'';if(typeof r.output_text==='string')return r.output_text.trim();if(Array.isArray(r.choices))return String(r.choices?.[0]?.message?.content||'').trim();return'';}\nfunction semanticOk(r){let t=extractText(r);if(!t)return false;t=t.replace(/^\\`\\`\\`(?:json)?\\s*/i,'').replace(/\\s*\\`\\`\\`$/,'').trim();try{const p=JSON.parse(t);return !!(p&&Array.isArray(p.results)&&p.results.length&&p.results.some(x=>x&&Number.isFinite(Number(x.item_id))));}catch(e){return false;}}\nconst r=$input.first()?.json||{};if(semanticOk(r))return [];\nconst b=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};\nreturn [{json:{...b,_free_ai_error:r.detail||r.error||{message:'DUCKAI_FREE_SEMANTIC_INVALID'},_router_fallback:'DIRECT_OPENAI_LAST_RESORT',_semantic_failover:true}}];"
+        "jsCode": "const r=$input.first()?.json||{};\nconst detail=String(r.detail||r.error?.message||r.error||'FREE_AI_UNAVAILABLE');\nreturn [{json:{status_only:true,DURUM:'ÜCRETSİZ AI GEÇİCİ OLARAK KULLANILAMADI — YAYIN YAPILMADI',ai_status:'FREE_AI_FAIL_CLOSED',ai_error:detail.slice(0,180),ai_model_used:String(r.model||'pollinations/free-classic'),publish_telegram:false,publish_instagram:false,publish_threads:false,publish_facebook:false,_semantic_failover:false}}];"
       },
       "id": "38d6dff9-f60f-4a3d-9c19-276b8a1e4501",
       "name": "NVIDIA FREE HATA - OPENAI YEDEK",
@@ -2880,7 +2880,7 @@
       "main": [
         [
           {
-            "node": "CHATGPT 1/5 - GPT-5.4-MINI",
+            "node": "AI SONUÇLARI AÇ + YAYIN FİLTRESİ",
             "type": "main",
             "index": 0
           }
