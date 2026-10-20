@@ -394,9 +394,110 @@ def _extract_results_obj(value):
         return None
     return walk(value)
 
+def _deterministic_official_result(prompt:str):
+    import re
+    src=str(prompt or "")
+    def field(name,default=""):
+        m=re.search(r"(?:^|\n)"+re.escape(name)+r"=(.*?)(?=\n[A-Z_]+=?|\Z)",src,re.S)
+        return (m.group(1).strip() if m else default)
+    try:
+        item_id=int(re.search(r"(?:^|\n)ITEM_ID=(\d+)",src).group(1))
+    except Exception:
+        item_id=0
+    source_name=field("SOURCE_NAME","Millî Eğitim Bakanlığı")
+    source_url=field("OFFICIAL_URL","")
+    source_title=field("SOURCE_TITLE","")
+    article=field("SOURCE_ARTICLE","")
+    text=re.sub(r"\s+"," ",(source_title+" "+article)).strip()
+    low=text.casefold()
+    if len(article)<80:
+        return None
+
+    topic_rules=[
+        ("öğrenci",r"\böğrenci"),
+        ("öğretmen",r"\böğretmen"),
+        ("müfredat",r"\bmüfredat|\bmaarif|\btymm\b"),
+        ("EBA",r"\beba\b"),
+        ("PISA",r"\bpisa\b"),
+        ("sınav",r"\bsınav|\bölçme|\bdeğerlendirme"),
+        ("mesleki eğitim",r"\bmesleki|\bmeslek lises"),
+        ("dijital eğitim",r"\bdijital|\bteknoloji|\byapay zek"),
+        ("atama",r"\batama|\byer değiş|\bpersonel"),
+        ("mevzuat",r"\byönetmelik|\bmevzuat|\byönerge|\bgenelge"),
+        ("okul",r"\bokul\b"),
+        ("proje",r"\bproje\b"),
+        ("program",r"\bprogram\b"),
+        ("akademi",r"\bakademi\b"),
+        ("burs",r"\bburs\b")
+    ]
+    topics=[]
+    for label,pat in topic_rules:
+        if re.search(pat,low,re.I) and label not in topics:
+            topics.append(label)
+    if not topics:
+        topics=["eğitim"]
+    secondary=next((x for x in topics[1:] if x!=topics[0]),"eğitim" if topics[0]!="eğitim" else "okul")
+
+    if re.search(r"\bbakan tekin\b",low,re.I):
+        title_main=f"Bakan Tekin'den {topics[0]} gündemine ilişkin değerlendirmeler"
+    else:
+        title_main=f"Eğitim gündeminde {topics[0]} başlığı öne çıktı"
+    if len(title_main)>60:
+        title_main=f"{topics[0].capitalize()} başlığı eğitim gündeminde"
+    if len(title_main)<28:
+        title_main=f"{title_main} hakkında yeni ayrıntılar"
+
+    title_highlight=f"{topics[0].capitalize()} ve {secondary} konuları birlikte ele alındı"
+    if len(title_highlight)>55:
+        title_highlight=f"{topics[0].capitalize()} ve {secondary} başlıkları ele alındı"
+    if len(title_highlight)<18:
+        title_highlight=f"{topics[0].capitalize()} konusunda ayrıntılar paylaşıldı"
+
+    sentences=[x.strip() for x in re.split(r"(?<=[.!?])\s+",re.sub(r"\s+"," ",article)) if len(x.strip())>=35]
+    chosen=next((x for x in sentences if 70<=len(x)<=150),None)
+    if not chosen:
+        chosen=(sentences[0] if sentences else article).strip()
+        if len(chosen)>145:
+            words=chosen.split()
+            buf=[]
+            for w in words:
+                if len(" ".join(buf+[w]))>140: break
+                buf.append(w)
+            chosen=" ".join(buf)
+    base=chosen.strip().rstrip(".!? ,;:-")
+    lead=f"Resmî haberde, {base}; ayrıca {topics[0]} ve {secondary} başlıkları ele alındı."
+    if len(lead)<120:
+        lead=lead.rstrip(".")+f"; konuya ilişkin ayrıntılar Bakanlığın resmî açıklamasında paylaşıldı."
+    if len(lead)>230:
+        suffix=f"; ayrıca {topics[0]} ve {secondary} başlıkları ele alındı."
+        maxbase=max(70,220-len("Resmî haberde, ")-len(suffix))
+        words=base.split(); buf=[]
+        for w in words:
+            if len(" ".join(buf+[w]))>maxbase: break
+            buf.append(w)
+        lead="Resmî haberde, "+" ".join(buf).rstrip(" ,;:-")+suffix
+    lead=lead.rstrip(" ,;:-.!?")+"."
+
+    return {"results":[{
+        "item_id":item_id,
+        "importance":75,
+        "category":"DİĞER MEB",
+        "title_main":title_main,
+        "title_highlight":title_highlight,
+        "hook":title_highlight,
+        "summary":lead,
+        "bullet_1":"",
+        "bullet_2":"",
+        "bullet_3":"",
+        "source_name":source_name,
+        "official_source_url":source_url,
+        "hashtags":["#MEB","#Eğitim","#MilliEğitim","#EğitimGündemi","#Öğretmen"]
+    }]}
+
 def _pollinations_chat(prompt:str, model:str="openai"):
     import json, time
-    prompt=_compact_free_editor_prompt(prompt)
+    original_prompt=str(prompt or "")
+    prompt=_compact_free_editor_prompt(original_prompt)
 
     schema_hint=(
         'Yanıt yalnız geçerli JSON olmalı ve tam olarak {"results":[{...}]} kök yapısını kullanmalı. '
@@ -489,6 +590,9 @@ def _pollinations_chat(prompt:str, model:str="openai"):
             last=RuntimeError("Pollinations "+mode_name+" semantic wrapper without results")
         except Exception as e:
             last=e
+    deterministic=_deterministic_official_result(original_prompt)
+    if deterministic:
+        return json.dumps(deterministic,ensure_ascii=False),"official-source-deterministic-v1"
     raise last or RuntimeError("Pollinations classic request failed")
 
 @app.get("/ai-free/health")
