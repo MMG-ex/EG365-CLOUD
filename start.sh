@@ -595,6 +595,8 @@ PY
   then
     echo "EG365_SMOKE_WARNING: semantic_verification_failed_fail_closed"
     echo "EG365_SMOKE: service_kept_alive_for_safe_fail_closed"
+    echo "EG365_SMOKE_DEBUG: renderer_log_tail"
+    tail -80 /tmp/renderer.log || true
   fi
   /opt/venv/bin/python - <<'PY' || true
 import os,sqlite3
