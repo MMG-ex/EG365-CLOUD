@@ -343,7 +343,7 @@ def _pollinations_chat(prompt:str, model:str="openai"):
         ],
         "model":"openai",
         "temperature":0.1,
-        "jsonMode":False,
+        "jsonMode":True,
         "private":True
     }
     raw=json.dumps(payload,ensure_ascii=False).encode("utf-8")
