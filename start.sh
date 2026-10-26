@@ -90,7 +90,7 @@ try:
                 match=next((x for x in (obj.get('data') or []) if str(x.get('id') or '')==page_id and x.get('access_token')),None)
                 if not match:
                     pages=obj.get('data') or []
-                    match=next((x for x in pages if x.get('access_token') and any(t in str(x.get('name') or '').lower() for t in ('eğitim gündem 365','egitim gundem 365','egitimgundem365'))),None)
+                    match=next((x for x in pages if x.get('access_token') and any(t in str(x.get('name') or '').lower() for t in ('e─şitim g├╝ndem 365','egitim gundem 365','egitimgundem365'))),None)
                 if match:
                     con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ACCESS_TOKEN',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(str(match['access_token']),))
                     con.execute("INSERT INTO eg365_secrets(k,v) VALUES('FACEBOOK_PAGE_ID',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",(str(match.get('id') or page_id),))
@@ -162,7 +162,7 @@ try:
             print("EG365_FB_PROBE: skipped_missing_credentials",flush=True)
         else:
             data=urllib.parse.urlencode({
-              'message':'EG365 CLOUD bağlantı doğrulama testi',
+              'message':'EG365 CLOUD ba─şlant─▒ do─şrulama testi',
               'published':'false',
               'access_token':page_token
             }).encode()
@@ -371,7 +371,7 @@ for n in w.get('nodes',[]):
         if old not in code:
             raise SystemExit('CONFIG run_mode anchor missing')
         p['jsCode']=code.replace(old,"const __runMode='manual';",1)
-    elif name=='ÖN FİLTRE + TEKRAR KONTROLÜ' and isinstance(code,str):
+    elif name=='├ûN F─░LTRE + TEKRAR KONTROL├£' and isinstance(code,str):
         old="const found=[];\nlet ok=0,failed=0,discovered=0,seen=0;"
         new="const manualForce=String(cfg.run_mode||'')==='manual';\nconst found=[];\nlet ok=0,failed=0,discovered=0,seen=0;"
         if old not in code:
@@ -382,7 +382,7 @@ for n in w.get('nodes',[]):
         if old2 not in code:
             raise SystemExit('prefilter duplicate anchor missing')
         p['jsCode']=code.replace(old2,new2,1)
-    elif name=='SON DUPLICATE KONTROLÜ' and isinstance(code,str):
+    elif name=='SON DUPLICATE KONTROL├£' and isinstance(code,str):
         old="const isDup=keys.some(k=>store.publishedNews[k]||store.inflightNews[k]);"
         new="const manualForce=String(j.run_mode||'')==='manual';\n  const isDup=manualForce?false:keys.some(k=>store.publishedNews[k]||store.inflightNews[k]);"
         if old not in code:
@@ -410,35 +410,35 @@ return out;"""
         # Current credential is app-only and would turn an otherwise successful
         # Telegram/Instagram/Threads/Facebook run into a false execution error.
         p['jsCode']="return [];"
-    elif name=='AI SONUÇLARI AÇ + YAYIN FİLTRESİ':
-        p['jsCode']=r"""const bundle=$('OPENAI TOPLU İSTEK HAZIRLA').first().json||{};
+    elif name=='AI SONU├çLARI A├ç + YAYIN F─░LTRES─░':
+        p['jsCode']=r"""const bundle=$('OPENAI TOPLU ─░STEK HAZIRLA').first().json||{};
 const src=(bundle.sources||[])[0]||null;
-if(!src)return [{json:{status_only:true,DURUM:'MANUEL: DOĞRULANMIŞ KAYNAK BULUNAMADI',publish_telegram:false,publish_instagram:false,publish_threads:false,publish_facebook:false}}];
+if(!src)return [{json:{status_only:true,DURUM:'MANUEL: DO─ŞRULANMI┼Ş KAYNAK BULUNAMADI',publish_telegram:false,publish_instagram:false,publish_threads:false,publish_facebook:false}}];
 
 function clean(v=''){return String(v??'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/gi,' ').replace(/\s+/g,' ').trim();}
-function trimWords(s,max){let t=clean(s);if(t.length<=max)return t.replace(/[,:;\-–—\s]+$/,'');const ws=t.split(' ');let out='';for(const w of ws){const n=(out?out+' ':'')+w;if(n.length>max)break;out=n;}return out.replace(/[,:;\-–—\s]+$/,'');}
+function trimWords(s,max){let t=clean(s);if(t.length<=max)return t.replace(/[,:;\-ÔÇôÔÇö\s]+$/,'');const ws=t.split(' ');let out='';for(const w of ws){const n=(out?out+' ':'')+w;if(n.length>max)break;out=n;}return out.replace(/[,:;\-ÔÇôÔÇö\s]+$/,'');}
 function sents(s=''){return clean(s).match(/[^.!?]+[.!?](?=\s|$)/g)||[];}
 function leadFrom(s=''){
   const ss=sents(s).map(clean).filter(x=>x.length>=35);
   let acc='';
   for(const x of ss){const n=(acc?acc+' ':'')+x;if(n.length>220)break;acc=n;if(acc.length>=120)break;}
   if(acc.length>=80){if(!/[.!?]$/.test(acc))acc+='.';return acc;}
-  let t=trimWords(clean(s),205); if(t.length<80)t='Millî Eğitim Bakanlığının resmî internet sitesinde yayımlanan duyuruda konuya ilişkin ayrıntılar ve uygulamaya dair bilgiler kamuoyuyla paylaşıldı.';
+  let t=trimWords(clean(s),205); if(t.length<80)t='Mill├« E─şitim Bakanl─▒─ş─▒n─▒n resm├« internet sitesinde yay─▒mlanan duyuruda konuya ili┼şkin ayr─▒nt─▒lar ve uygulamaya dair bilgiler kamuoyuyla payla┼ş─▒ld─▒.';
   if(!/[.!?]$/.test(t))t+='.'; return t;
 }
-function categoryOf(t=''){t=clean(t).toLocaleLowerCase('tr-TR');if(/sınav|yazılı|ölçme|değerlendirme|lgs|iokbs/.test(t))return'SINAV';if(/öğretmen|atama|yer değiş|personel/.test(t))return'ÖĞRETMEN';if(/mesleki|meslek/.test(t))return'MESLEKİ EĞİTİM';if(/teknoloji|dijital|yapay zek|yegitek/.test(t))return'TEKNOLOJİ';if(/müfredat|maarif|öğretim program/.test(t))return'MÜFREDAT';if(/proje|açılış|program/.test(t))return'PROJE';return'DİĞER MEB';}
+function categoryOf(t=''){t=clean(t).toLocaleLowerCase('tr-TR');if(/s─▒nav|yaz─▒l─▒|├Âl├ğme|de─şerlendirme|lgs|iokbs/.test(t))return'SINAV';if(/├Â─şretmen|atama|yer de─şi┼ş|personel/.test(t))return'├û─ŞRETMEN';if(/mesleki|meslek/.test(t))return'MESLEK─░ E─Ş─░T─░M';if(/teknoloji|dijital|yapay zek|yegitek/.test(t))return'TEKNOLOJ─░';if(/m├╝fredat|maarif|├Â─şretim program/.test(t))return'M├£FREDAT';if(/proje|a├ğ─▒l─▒┼ş|program/.test(t))return'PROJE';return'D─░─ŞER MEB';}
 const full=clean(src.source_content||src.summary||'');
-let main=trimWords(src.title||'MEB resmî duyurusu',96);
-if(main.length<28)main=trimWords('Millî Eğitim Bakanlığından yeni resmî duyuru: '+main,96);
-let hi='Resmî kaynakta kapsam ve ayrıntılar paylaşıldı';
-if(hi.length<12)hi='MEB ayrıntıları paylaştı';
+let main=trimWords(src.title||'MEB resm├« duyurusu',96);
+if(main.length<28)main=trimWords('Mill├« E─şitim Bakanl─▒─ş─▒ndan yeni resm├« duyuru: '+main,96);
+let hi='Resm├« kaynakta kapsam ve ayr─▒nt─▒lar payla┼ş─▒ld─▒';
+if(hi.length<12)hi='MEB ayr─▒nt─▒lar─▒ payla┼şt─▒';
 const lead=leadFrom(full||src.summary||src.title);
 const facts=sents(full).map(clean).filter(x=>x.length>=35&&x.length<=165&&x!==lead).slice(0,3);
 const bullets=facts.map(x=>/[.!?]$/.test(x)?x:x+'.');
 const url=String(src.official_source_url||src.link||'');
-const source=clean(src.source_name||'Millî Eğitim Bakanlığı');
-const tags=['#MEB','#Eğitim','#MilliEğitim','#EğitimGündemi','#Öğretmen'];
-return [{json:{...src,status_only:false,run_mode:'manual',verified:true,meb_relevant:true,confidence:100,importance:80,category:categoryOf(main+' '+full),title_main:main,title_highlight:hi,hook:hi,summary:lead,lead,bullets,bullet_1:bullets[0]||'',bullet_2:bullets[1]||'',bullet_3:bullets[2]||'',bullet_count:bullets.length,source_name:source,official_source_url:url,source_url:url,preferred_source_url:url,hashtags:tags,content_quality_pass:true,content_quality_version:'MANUAL_OFFICIAL_SOURCE_FALLBACK',ai_status:'MANUAL_OFFICIAL_SOURCE_FALLBACK',ai_model_used:'none',publication_basis:'RESMÎ MEB KAYNAĞI',publish_telegram:true,publish_instagram:true,publish_threads:true,publish_facebook:true}}];"""
+const source=clean(src.source_name||'Mill├« E─şitim Bakanl─▒─ş─▒');
+const tags=['#MEB','#E─şitim','#MilliE─şitim','#E─şitimG├╝ndemi','#├û─şretmen'];
+return [{json:{...src,status_only:false,run_mode:'manual',verified:true,meb_relevant:true,confidence:100,importance:80,category:categoryOf(main+' '+full),title_main:main,title_highlight:hi,hook:hi,summary:lead,lead,bullets,bullet_1:bullets[0]||'',bullet_2:bullets[1]||'',bullet_3:bullets[2]||'',bullet_count:bullets.length,source_name:source,official_source_url:url,source_url:url,preferred_source_url:url,hashtags:tags,content_quality_pass:true,content_quality_version:'MANUAL_OFFICIAL_SOURCE_FALLBACK',ai_status:'MANUAL_OFFICIAL_SOURCE_FALLBACK',ai_model_used:'none',publication_basis:'RESM├Ä MEB KAYNA─ŞI',publish_telegram:true,publish_instagram:true,publish_threads:true,publish_facebook:true}}];"""
 
 dst.write_text(json.dumps(w,ensure_ascii=False,indent=2),encoding='utf-8')
 print('EG365_MANUAL_BOOT: manual_workflow_built')
@@ -494,16 +494,16 @@ for n in w.get('nodes',[]):
         code=((n.get('parameters') or {}).get('jsCode') or '')
         code=code.replace('dry_run: false','dry_run: true')
         n['parameters']['jsCode']=code
-    if n.get('name')=='90 DAKİKADA BİR':
+    if n.get('name')=='90 DAK─░KADA B─░R':
         n['parameters']={'rule':{'interval':[{'field':'minutes','minutesInterval':1}]}}
-    if n.get('name')=='ÖN FİLTRE + TEKRAR KONTROLÜ':
+    if n.get('name')=='├ûN F─░LTRE + TEKRAR KONTROL├£':
         n['parameters']['jsCode']="""return [{json:{
-  title:'MEB RESMÎ HABER DOĞRULAMA TESTİ',
+  title:'MEB RESM├Ä HABER DO─ŞRULAMA TEST─░',
   link:'https://www.meb.gov.tr/bakan-tekin-haberimiz-olsun-bulteninde-ogrencilerin-sorularini-yanitladi/haber/42086/tr',
   official_source_url:'https://www.meb.gov.tr/bakan-tekin-haberimiz-olsun-bulteninde-ogrencilerin-sorularini-yanitladi/haber/42086/tr',
   published:'2026-10-04T12:11:00',
-  summary:'Millî Eğitim Bakanlığının resmî haber sayfası cloud zincirinin doğrulanması amacıyla kuru test girdisi olarak kullanılmaktadır.',
-  source_name:'Millî Eğitim Bakanlığı',source_host:'www.meb.gov.tr',source_type:'SMOKE_OFFICIAL',
+  summary:'Mill├« E─şitim Bakanl─▒─ş─▒n─▒n resm├« haber sayfas─▒ cloud zincirinin do─şrulanmas─▒ amac─▒yla kuru test girdisi olarak kullan─▒lmaktad─▒r.',
+  source_name:'Mill├« E─şitim Bakanl─▒─ş─▒',source_host:'www.meb.gov.tr',source_type:'SMOKE_OFFICIAL',
   verified:true,meb_relevant:true,direct_seen_key:'eg365-cloud-smoke-42086',
   ts:Date.now(),article_enriched:false,article_fetch_ok:false,item_id:0,run_mode:'normal'
 }}];"""
@@ -758,18 +758,18 @@ try:
         success=(not has_error(x)) and (explicit or bool(ident) or data_ok or (200<=sc<300))
         return {'ran':True,'success':bool(success),'id':ident,'status_code':sc,'error_code':err['code'],'error_message':err['message']}
     route_names=[
-      'KAYNAK DOĞRULAMA + OMNIROUTE HAZIRLA',
+      'KAYNAK DO─ŞRULAMA + OMNIROUTE HAZIRLA',
       'NVIDIA FREE HAZIRLA',
       'NVIDIA FREE - CHAT COMPLETIONS',
-      'NVIDIA FREE BAŞARILI - DEVAM',
+      'NVIDIA FREE BA┼ŞARILI - DEVAM',
       'NVIDIA FREE HATA - OPENAI YEDEK',
       'CHATGPT 1/5 - GPT-5.4-MINI',
-      'MODEL 1 HATA - SONRAKİNE GEÇ',
+      'MODEL 1 HATA - SONRAK─░NE GE├ç',
       'CHATGPT 2/5 - GPT-5.6-LUNA',
       'CHATGPT 3/5 - GPT-5.6-SOL',
       'CHATGPT 4/5 - GPT-5.6-TERRA',
       'CHATGPT 5/5 - GPT-6-ASTRA',
-      'AI SONUÇLARI AÇ + YAYIN FİLTRESİ'
+      'AI SONU├çLARI A├ç + YAYIN F─░LTRES─░'
     ]
     trace={}
     for name in route_names:
@@ -786,8 +786,8 @@ try:
           'output_chars':len(str(j.get('output_text') or ''))
         }
     print("EG365_ROUTE_TRACE: "+json.dumps({'execution_id':row[0],'trace':trace},ensure_ascii=False),flush=True)
-    cand=last_json('AI SONUÇLARI AÇ + YAYIN FİLTRESİ') or {}
-    cat=last_json('CATBOX PUBLIC URL YÜKLE') or {}
+    cand=last_json('AI SONU├çLARI A├ç + YAYIN F─░LTRES─░') or {}
+    cat=last_json('CATBOX PUBLIC URL Y├£KLE') or {}
     caturl=''
     if isinstance(cat,dict):
         for k in ('public_image_url','image_url','url','body','data'):
@@ -813,7 +813,7 @@ try:
       'telegram':channel('TELEGRAM YAYINLA'),
       'instagram_create':channel('INSTAGRAM CONTAINER'),
       'instagram_publish':channel('INSTAGRAM YAYINLA'),
-      'instagram_verify':channel('INSTAGRAM YAYIN DOĞRULA'),
+      'instagram_verify':channel('INSTAGRAM YAYIN DO─ŞRULA'),
       'threads_create':channel('THREADS CONTAINER FIX'),
       'threads_publish':channel('THREADS YAYINLA FIX'),
       'threads_verify':channel('THREADS YAYIN KONTROL'),
@@ -937,8 +937,8 @@ try:
         err=safe_error(x)
         success=(not has_error(x)) and (explicit or bool(ident) or data_ok or (200<=sc<300))
         return {'ran':True,'success':bool(success),'id':ident,'status_code':sc,'error_code':err['code'],'error_message':err['message']}
-    cand=last_json('AI SONUÇLARI AÇ + YAYIN FİLTRESİ') or {}
-    cat=last_json('CATBOX PUBLIC URL YÜKLE') or {}
+    cand=last_json('AI SONU├çLARI A├ç + YAYIN F─░LTRES─░') or {}
+    cat=last_json('CATBOX PUBLIC URL Y├£KLE') or {}
     caturl=''
     if isinstance(cat,dict):
         for k in ('public_image_url','image_url','url','body','data'):
@@ -963,7 +963,7 @@ try:
       'telegram':channel('TELEGRAM YAYINLA'),
       'instagram_create':channel('INSTAGRAM CONTAINER'),
       'instagram_publish':channel('INSTAGRAM YAYINLA'),
-      'instagram_verify':channel('INSTAGRAM YAYIN DOĞRULA'),
+      'instagram_verify':channel('INSTAGRAM YAYIN DO─ŞRULA'),
       'threads_create':channel('THREADS CONTAINER FIX'),
       'threads_publish':channel('THREADS YAYINLA FIX'),
       'threads_verify':channel('THREADS YAYIN KONTROL'),
@@ -985,10 +985,32 @@ audit_last_prod
 audit_last_manual
 
 run_prod() {
-  if ! mkdir /tmp/eg365-prod.lock 2>/dev/null; then
-    echo "EG365_PROD: already_running"
-    return 0
+  LOCK_DIR=/tmp/eg365-prod.lock
+  LOCK_PID="$LOCK_DIR/pid"
+  LOCK_TS="$LOCK_DIR/started_at"
+
+  if [ -d "$LOCK_DIR" ]; then
+    old_pid="$(cat "$LOCK_PID" 2>/dev/null || true)"
+    old_ts="$(cat "$LOCK_TS" 2>/dev/null || echo 0)"
+    now_ts="$(date +%s)"
+    age=$((now_ts-old_ts))
+
+    if [ -n "$old_pid" ] && kill -0 "$old_pid" 2>/dev/null && [ "$age" -lt 600 ]; then
+      echo "EG365_PROD: already_running pid=$old_pid age=${age}s"
+      return 0
+    fi
+
+    echo "EG365_PROD: stale_lock_recovered pid=${old_pid:-none} age=${age}s"
+    rm -rf "$LOCK_DIR"
   fi
+
+  if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+    echo "EG365_PROD: lock_create_failed"
+    return 1
+  fi
+  echo "$" > "$LOCK_PID"
+  date +%s > "$LOCK_TS"
+
   echo "EG365_PROD: execution_start"
   if timeout 480 n8n execute --id=EG365CLOUDRENDERV128 >/tmp/eg365-prod.log 2>&1; then
     echo "EG365_PROD: execution_ok"
@@ -1129,7 +1151,7 @@ try:
         root=raw
     run=((root or {}).get('resultData') or {}).get('runData') or {}
     nodes=list(run.keys())
-    watch=['RSS OKU','ÖN FİLTRE + TEKRAR KONTROLÜ','HABER DETAYINI AÇ','OPENAI TOPLU İSTEK HAZIRLA','AI SONUÇLARI AÇ + YAYIN FİLTRESİ','YAYIN ADAYI VARSA DEVAM','SON DUPLICATE KONTROLÜ','TELEGRAM CANLI FİLTRE','TELEGRAM YAYINLA','INSTAGRAM CANLI FİLTRE','INSTAGRAM CONTAINER','INSTAGRAM YAYINLA','THREADS CANLI FİLTRE','THREADS CONTAINER','THREADS YAYINLA','FACEBOOK CANLI FİLTRE','FACEBOOK YAYINLA']
+    watch=['RSS OKU','├ûN F─░LTRE + TEKRAR KONTROL├£','HABER DETAYINI A├ç','OPENAI TOPLU ─░STEK HAZIRLA','AI SONU├çLARI A├ç + YAYIN F─░LTRES─░','YAYIN ADAYI VARSA DEVAM','SON DUPLICATE KONTROL├£','TELEGRAM CANLI F─░LTRE','TELEGRAM YAYINLA','INSTAGRAM CANLI F─░LTRE','INSTAGRAM CONTAINER','INSTAGRAM YAYINLA','THREADS CANLI F─░LTRE','THREADS CONTAINER','THREADS YAYINLA','FACEBOOK CANLI F─░LTRE','FACEBOOK YAYINLA']
     def last_json(name):
         runs=run.get(name) or []
         for rr in reversed(runs):
