@@ -280,15 +280,15 @@ for n in w.get('nodes',[]):
                 base=str(x.get('value') or '')
                 if 'MMG' not in base:
                     if name=='TELEGRAM YAYINLA':
-                        x['value']="={{ ($json.telegram_caption_html || $json.telegram_caption || '') + '\\n\\nMMG\\@mmurattg @meb @herkes' }}"
+                        x['value']="={{ ($json.telegram_caption_html || $json.telegram_caption || '') + '\\n\\nMMG\\ @mmurattg @meb @herkes' }}"
                     elif name=='INSTAGRAM CONTAINER':
-                        x['value']="={{ ($json.instagram_caption || '') + '\\n\\nMMG\\@mmurattg @meb @herkes' }}"
+                        x['value']="={{ ($json.instagram_caption || '') + '\\n\\nMMG\\ @mmurattg @meb @herkes' }}"
                     else:
-                        x['value']="={{ ($json.facebook_caption || '') + '\\n\\nMMG\\@mmurattg @meb @herkes' }}"
+                        x['value']="={{ ($json.facebook_caption || '') + '\\n\\nMMG\\ @mmurattg @meb @herkes' }}"
     elif name=='THREADS CONTAINER':
         for x in (((params.get('queryParameters') or {}).get('parameters')) or []):
             if x.get('name')=='text' and 'MMG' not in str(x.get('value') or ''):
-                x['value']="={{ ($json.threads_caption || '') + '\\n\\nMMG\\@mmurattg @meb @herkes' }}"
+                x['value']="={{ ($json.threads_caption || '') + '\\n\\nMMG\\ @mmurattg @meb @herkes' }}"
 # Align every container-internal renderer call with Render's actual listening port.
 port=(os.environ.get('PUBLIC_PORT') or '10000').strip()
 raw=json.dumps(w,ensure_ascii=False)
