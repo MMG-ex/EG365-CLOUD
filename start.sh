@@ -35,6 +35,12 @@ src=Path('/tmp/eg365-state.fernet')
 dst=Path('/root/.n8n/database.sqlite')
 key=os.environ['STATE_BACKUP_KEY'].encode()
 raw=Fernet(key).decrypt(src.read_bytes())
+# Previous backups were raw SQLite; new backups are gzip+Fernet.
+if raw.startswith(bytes((31,139))):
+    import gzip
+    raw=gzip.decompress(raw)
+if not raw.startswith(b'SQLite format 3'):
+    raise SystemExit('EG365_BOOT_ERROR: decrypted backup is not SQLite')
 dst.write_bytes(raw)
 print('EG365_BOOT: state_restore_ok bytes='+str(len(raw)))
 PY
@@ -285,6 +291,17 @@ for n in w.get('nodes',[]):
                         x['value']="={{ ($json.instagram_caption || '') + '\\n\\nMMG\\ @mmurattg @meb @herkes' }}"
                     else:
                         x['value']="={{ ($json.facebook_caption || '') + '\\n\\nMMG\\ @mmurattg @meb @herkes' }}"
+    elif name and 'DUPLICATE KONTROL' in name and isinstance(params.get('jsCode'),str):
+        old='const isDup=keys.some(k=>store.publishedNews[k]||store.inflightNews[k]);'
+        new=(
+          "const _egHost=(url.match(/^https?:\\/\\/([^/?#]+)/i)||[])[1]||'';\n"
+          "  const _egSid=(url.match(/\\/(?:haber|icerik)\\/(\\d+)(?:\\/tr)?(?:[?#\\/]|$)/i)||[])[1]||'';\n"
+          "  const _egSourceKey=_egHost.toLowerCase().replace(/^www\\./,'')+'|'+_egSid;\n"
+          "  const isDup=keys.some(k=>store.publishedNews[k]||store.inflightNews[k]) || (_egSid && !!store.publishedNews['sid:'+_egSourceKey]);"
+        )
+        if old not in params['jsCode']:
+            raise SystemExit('EG365_GUARD: duplicate anchor missing')
+        params['jsCode']=params['jsCode'].replace(old,new,1)
     elif name=='THREADS CONTAINER':
         for x in (((params.get('queryParameters') or {}).get('parameters')) or []):
             if x.get('name')=='text' and 'MMG' not in str(x.get('value') or ''):
@@ -371,23 +388,6 @@ for n in w.get('nodes',[]):
         if old not in code:
             raise SystemExit('CONFIG run_mode anchor missing')
         p['jsCode']=code.replace(old,"const __runMode='manual';",1)
-    elif name=='├ûN F─░LTRE + TEKRAR KONTROL├£' and isinstance(code,str):
-        old="const found=[];\nlet ok=0,failed=0,discovered=0,seen=0;"
-        new="const manualForce=String(cfg.run_mode||'')==='manual';\nconst found=[];\nlet ok=0,failed=0,discovered=0,seen=0;"
-        if old not in code:
-            raise SystemExit('prefilter manual anchor missing')
-        code=code.replace(old,new,1)
-        old2="if(store.directSeen[directKey]||keys.some(k=>store.publishedNews[k])){seen++;continue;}"
-        new2="if(!manualForce && (store.directSeen[directKey]||keys.some(k=>store.publishedNews[k]))){seen++;continue;}"
-        if old2 not in code:
-            raise SystemExit('prefilter duplicate anchor missing')
-        p['jsCode']=code.replace(old2,new2,1)
-    elif name=='SON DUPLICATE KONTROL├£' and isinstance(code,str):
-        old="const isDup=keys.some(k=>store.publishedNews[k]||store.inflightNews[k]);"
-        new="const manualForce=String(j.run_mode||'')==='manual';\n  const isDup=manualForce?false:keys.some(k=>store.publishedNews[k]||store.inflightNews[k]);"
-        if old not in code:
-            raise SystemExit('final duplicate anchor missing')
-        p['jsCode']=code.replace(old,new,1)
     elif name=='YAYIN ADAYI VARSA DEVAM':
         p['jsCode']=r"""const out=[];
 for(const item of $input.all()){
@@ -648,6 +648,7 @@ if [ -z "${RPID:-}" ] || ! kill -0 "$RPID" 2>/dev/null; then
   echo "EG365_BOOT_ERROR: renderer_not_alive_after_smoke"
   exit 1
 fi
+/opt/venv/bin/python /opt/cloud_guard.py || { echo 'EG365_BOOT_ERROR: guard_failed'; exit 1; }
 echo "EG365_BOOT: cloud_ready"
 
 audit_last_prod() {
@@ -1011,6 +1012,11 @@ run_prod() {
   echo "$" > "$LOCK_PID"
   date +%s > "$LOCK_TS"
 
+  if ! /opt/venv/bin/python /opt/cloud_guard.py; then
+    echo 'EG365_PROD: guard_failed_no_publish'
+    rm -rf "$LOCK_DIR"
+    return 1
+  fi
   echo "EG365_PROD: execution_start"
   if timeout 480 n8n execute --id=EG365CLOUDRENDERV128 >/tmp/eg365-prod.log 2>&1; then
     echo "EG365_PROD: execution_ok"
@@ -1050,7 +1056,7 @@ try:
                 best=x; break
         if best:
             safe={'status_only':best.get('status_only'),'ai_status':best.get('ai_status'),'ai_model_used':best.get('ai_model_used'),'content_quality_pass':best.get('content_quality_pass'),'publish_telegram':best.get('publish_telegram'),'publish_instagram':best.get('publish_instagram'),'publish_threads':best.get('publish_threads'),'publish_facebook':best.get('publish_facebook'),'title':str(best.get('title') or '')[:140],'durum':str(best.get('DURUM') or '')[:160]}
-            print("EG365_PROD_RESULT: "+json.dumps(safe,ensure_ascii=False),flush=True)
+            print("EG365_PROD_CANDIDATE_ONLY: "+json.dumps(safe,ensure_ascii=False),flush=True)
 except Exception as e:
     print("EG365_PROD_VERIFY_WARNING: "+str(e),flush=True)
 finally:
@@ -1094,6 +1100,7 @@ MPID=$!
       else
         rm -f /tmp/eg365-run-now.trigger
         echo "EG365_MANUAL: trigger_received"
+        /opt/venv/bin/python /opt/cloud_guard.py || { echo 'EG365_MANUAL: guard_failed_no_publish'; sleep 2; continue; }
         echo "EG365_MANUAL: execution_start"
         if timeout 480 n8n execute --id="$MANUAL_ID" >/tmp/eg365-manual.log 2>&1; then
           echo "EG365_MANUAL: execution_ok"

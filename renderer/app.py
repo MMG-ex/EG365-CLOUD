@@ -798,8 +798,12 @@ def eg365_state_backup():
         finally:
             dst.close()
             src.close()
+        import gzip
         raw=Path(tmp).read_bytes()
-        encrypted=Fernet(key.encode("utf-8")).encrypt(raw)
+        compressed=gzip.compress(raw,compresslevel=3)
+        del raw
+        encrypted=Fernet(key.encode("utf-8")).encrypt(compressed)
+        del compressed
         return Response(
             encrypted,
             media_type="application/octet-stream",

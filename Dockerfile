@@ -27,6 +27,7 @@ COPY renderer/app.py /opt/renderer/app.py
 COPY renderer/template/ana-sablon.jpg.b64 /tmp/ana-sablon.jpg.b64
 RUN base64 -d /tmp/ana-sablon.jpg.b64 > /opt/renderer/template/ana-sablon.jpg && rm /tmp/ana-sablon.jpg.b64
 COPY workflow/EG365_CLOUD_RENDER_V128.json /opt/workflow/EG365_CLOUD_RENDER_V128.json
+COPY cloud_guard.py /opt/cloud_guard.py
 COPY start.sh /opt/start.sh
 RUN chmod +x /opt/start.sh
 
