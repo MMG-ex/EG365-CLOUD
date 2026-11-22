@@ -528,7 +528,7 @@ finally:
     con.close()
 PY
   echo "EG365_SMOKE: executing_dry_run"
-  if ! timeout 420 n8n execute --id="$SMOKE_ID" >/tmp/eg365-smoke.log 2>&1; then
+  if ! MALLOC_ARENA_MAX=2 NODE_OPTIONS="--max-old-space-size=256" timeout 420 n8n execute --id="$SMOKE_ID" >/tmp/eg365-smoke.log 2>&1; then
     echo "EG365_SMOKE_ERROR: dry_run_execution_failed_or_timed_out"
     echo "EG365_SMOKE_DEBUG: n8n_smoke_log_tail"
     tail -140 /tmp/eg365-smoke.log || true
@@ -1009,7 +1009,7 @@ run_prod() {
     echo "EG365_PROD: lock_create_failed"
     return 1
   fi
-  echo "$" > "$LOCK_PID"
+  echo "$$" > "$LOCK_PID"
   date +%s > "$LOCK_TS"
 
   if ! /opt/venv/bin/python /opt/cloud_guard.py; then
@@ -1018,7 +1018,7 @@ run_prod() {
     return 1
   fi
   echo "EG365_PROD: execution_start"
-  if timeout 480 n8n execute --id=EG365CLOUDRENDERV128 >/tmp/eg365-prod.log 2>&1; then
+  if MALLOC_ARENA_MAX=2 NODE_OPTIONS="--max-old-space-size=256" timeout 480 n8n execute --id=EG365CLOUDRENDERV128 >/tmp/eg365-prod.log 2>&1; then
     echo "EG365_PROD: execution_ok"
   else
     rc=$?
@@ -1102,7 +1102,7 @@ MPID=$!
         echo "EG365_MANUAL: trigger_received"
         /opt/venv/bin/python /opt/cloud_guard.py || { echo 'EG365_MANUAL: guard_failed_no_publish'; sleep 2; continue; }
         echo "EG365_MANUAL: execution_start"
-        if timeout 480 n8n execute --id="$MANUAL_ID" >/tmp/eg365-manual.log 2>&1; then
+        if MALLOC_ARENA_MAX=2 NODE_OPTIONS="--max-old-space-size=256" timeout 480 n8n execute --id="$MANUAL_ID" >/tmp/eg365-manual.log 2>&1; then
           echo "EG365_MANUAL: execution_ok"
         else
           rc=$?

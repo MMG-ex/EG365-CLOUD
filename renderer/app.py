@@ -798,12 +798,17 @@ def eg365_state_backup():
         finally:
             dst.close()
             src.close()
-        import gzip
-        raw=Path(tmp).read_bytes()
-        compressed=gzip.compress(raw,compresslevel=3)
-        del raw
-        encrypted=Fernet(key.encode("utf-8")).encrypt(compressed)
-        del compressed
+        # Stream SQLite into gzip on disk to avoid simultaneously holding a
+        # 130+ MiB database, its compressed copy and Fernet buffers in RAM.
+        import gzip, shutil
+        compressed_path=tmp+".gz"
+        try:
+            with open(tmp,"rb") as source, gzip.open(compressed_path,"wb",compresslevel=3) as target:
+                shutil.copyfileobj(source,target,length=1024*1024)
+            encrypted=Fernet(key.encode("utf-8")).encrypt(Path(compressed_path).read_bytes())
+        finally:
+            try: os.unlink(compressed_path)
+            except OSError: pass
         return Response(
             encrypted,
             media_type="application/octet-stream",

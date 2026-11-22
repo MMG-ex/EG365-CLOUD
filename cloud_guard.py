@@ -114,14 +114,26 @@ def scan(con):
         if sid:
             con.execute("INSERT OR IGNORE INTO eg365_receipts (source_key,channel,receipt,url,execution_id) VALUES(?,?,?,?,?)",
                         (sid, "local_history", "confirmed_local_publication", url, 0))
+    # Incremental scan: never expand the full execution history at each 2h run.
+    # The durable receipt ledger remains untouched. On first use, recheck the
+    # last 120 executions (the earlier published sources are already in ledger).
+    con.execute("CREATE TABLE IF NOT EXISTS eg365_guard_progress (name TEXT PRIMARY KEY, last_id INTEGER NOT NULL)")
+    previous = con.execute("SELECT last_id FROM eg365_guard_progress WHERE name=?", ("all",)).fetchone()
+    if previous is None:
+        latest = con.execute("SELECT COALESCE(MAX(id),0) FROM execution_entity WHERE workflowId IN (?,?)", WORKFLOWS).fetchone()[0]
+        cursor = max(0, int(latest) - 120)
+    else:
+        cursor = int(previous[0])
     records = []
     rows = con.execute(
-        "SELECT e.id,e.workflowId,d.data FROM execution_entity e JOIN execution_data d ON d.executionId=e.id WHERE e.workflowId IN (?,?) ORDER BY e.id DESC LIMIT 1200",
-        WORKFLOWS,
-    )
+        "SELECT e.id,e.workflowId,d.data FROM execution_entity e JOIN execution_data d ON d.executionId=e.id "
+        "WHERE e.workflowId IN (?,?) AND e.id>? ORDER BY e.id ASC LIMIT 60",
+        (*WORKFLOWS,cursor),
+    ).fetchall()
     scanned = 0
-    # Stream rows: loading the entire execution history can exceed Render's 512-MiB limit.
+    last_id = cursor
     for eid, wid, raw in rows:
+        last_id = max(last_id, int(eid))
         try:
             run = (expand(raw).get("resultData") or {}).get("runData") or {}
             if not isinstance(run, dict):
@@ -154,6 +166,8 @@ def scan(con):
             print("EG365_GUARD: history_row_warning id="+str(eid)+" error="+type(exc).__name__, flush=True)
     # Do not replace earlier receipts with newer duplicates.
     con.executemany("INSERT OR IGNORE INTO eg365_receipts (source_key,channel,receipt,url,execution_id) VALUES(?,?,?,?,?)", records)
+    con.execute("INSERT INTO eg365_guard_progress(name,last_id) VALUES('all',?) "
+                "ON CONFLICT(name) DO UPDATE SET last_id=excluded.last_id", (last_id,))
     return scanned
 
 def reconcile(con):
